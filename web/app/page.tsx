@@ -44,12 +44,9 @@ interface Stats {
 }
 
 // ========== API Base ==========
-const API_BASE = typeof window !== 'undefined' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:18792')
-  : 'http://localhost:18792'
-
+// On Railway, API and Web are on the same origin, so use relative URLs
 async function fetchApi<T>(endpoint: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`)
+  const res = await fetch(endpoint)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
@@ -298,7 +295,7 @@ export default function Home() {
   async function triggerDream() {
     setDreaming(true)
     try {
-      await fetch(`${API_BASE}/api/dreams/trigger`, { method: 'POST' })
+      await fetch('/api/dreams/trigger', { method: 'POST' })
       await new Promise(r => setTimeout(r, 2500))
       await loadData()
     } catch (e) {
