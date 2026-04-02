@@ -22,6 +22,7 @@
   "author": "adminlove520",
   "license": "MIT",
   "dependencies": {
+    "next": "^16.2.2",
     "sql.js": "^1.14.1"
   }
 }
