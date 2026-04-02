@@ -114,3 +114,37 @@ Score = freshness*0.25 + coverage*0.25 + coherence*0.20 + efficiency*0.15 + acce
 - `POST /api/dreams`：手动触发做梦
 - `GET /api/health`：获取历史健康度
 - `POST /api/sync`：同步数据到控制中心
+
+## 六、v4.1 新增
+
+### 6.1 霓虹发光 UI 系统
+
+Agent Dashboard 引入完整的赛博/霓虹视觉系统：
+
+| CSS 类 | 用途 |
+|--------|------|
+| `.neon-text-green/blue/purple/cyan/orange` | 带发光 text-shadow 的文字 |
+| `.neon-card` / `.neon-card-blue` / `.neon-card-purple` | 带渐变背景和发光边框的卡片 |
+| `.neon-btn` | 发光按钮（渐变背景 + box-shadow） |
+| `.ambient-glow` / `.grid-bg` | 页面级背景效果 |
+| `.stat-value-*` | 统计数值专用发光 |
+
+### 6.2 记忆矩阵 (MemoryMatrix)
+
+可视化记忆类型分布，显示各类型的计数、占比和动画进度条。
+
+### 6.3 同步日志 (SyncLog)
+
+Agent 端同步操作的完整日志记录，存储在 SQLite `sync_log` 表中，通过 `/api/sync?action=logs` API 查询。
+
+### 6.4 Vercel KV 持久化
+
+Control Center 的 `store.ts` 自动检测环境：
+- 有 `KV_REST_API_URL` + `KV_REST_API_TOKEN` → 使用 Vercel KV (Redis 兼容)
+- 否则 → 使用本地 better-sqlite3
+
+KV Key Schema:
+```
+agent:{id}, agents:index, memory:{id}, memories:agent:{agentId},
+dream:{id}, dreams:agent:{agentId}, synclog:{id}, synclog:all
+```

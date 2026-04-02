@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ArrowLeft, RefreshCw, AlertCircle, 
   Cloud, Calendar, FileText, CheckCircle2,
-  XCircle, PlayCircle
+  XCircle, ChevronDown, ChevronUp, X
 } from 'lucide-react'
 import Link from 'next/link'
 import type { Dream } from '@/lib/types'
@@ -14,6 +14,7 @@ export default function DreamsPage() {
   const [dreams, setDreams] = useState<Dream[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [expandedReport, setExpandedReport] = useState<string | null>(null)
 
   async function loadData() {
     setLoading(true)
@@ -40,8 +41,15 @@ export default function DreamsPage() {
             <Link href="/" className="p-2 hover:bg-zinc-800 rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="font-semibold text-lg">Superdreams 历史</h1>
+            <h1 className="font-semibold text-lg">SuperDreams 梦境历史</h1>
           </div>
+          <button
+            onClick={loadData}
+            className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-zinc-100"
+            title="刷新"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       </header>
 
@@ -55,6 +63,9 @@ export default function DreamsPage() {
           <div className="text-center py-20">
             <AlertCircle className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
             <p className="text-zinc-400">{error}</p>
+            <button onClick={loadData} className="mt-4 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm">
+              重试
+            </button>
           </div>
         ) : dreams.length === 0 ? (
           <div className="text-center py-20 text-zinc-500">
@@ -109,12 +120,50 @@ export default function DreamsPage() {
                           <FileText className="w-4 h-4" />
                           <span>报告摘要</span>
                         </div>
-                        <div className="text-sm text-zinc-400 line-clamp-3 whitespace-pre-wrap">
-                          {dream.report.replace(/#+ /g, '').slice(0, 200)}...
-                        </div>
-                        <button className="mt-4 text-xs font-medium text-green-500 hover:text-green-400 transition-colors flex items-center gap-1">
-                          阅读完整报告
-                          <PlayCircle className="w-3 h-3" />
+
+                        <AnimatePresence mode="wait">
+                          {expandedReport === dream.id ? (
+                            <motion.div
+                              key="full"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed prose prose-invert prose-sm max-w-none">
+                                {dream.report}
+                              </div>
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="preview"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                            >
+                              <div className="text-sm text-zinc-400 line-clamp-3 whitespace-pre-wrap">
+                                {dream.report.replace(/#+ /g, '').slice(0, 200)}...
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <button
+                          onClick={() => setExpandedReport(expandedReport === dream.id ? null : dream.id)}
+                          className="mt-4 text-xs font-medium text-green-500 hover:text-green-400 transition-colors flex items-center gap-1 group"
+                        >
+                          {expandedReport === dream.id ? (
+                            <>
+                              收起报告
+                              <ChevronUp className="w-3 h-3 group-hover:-translate-y-0.5 transition-transform" />
+                            </>
+                          ) : (
+                            <>
+                              阅读完整报告
+                              <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
+                            </>
+                          )}
                         </button>
                       </div>
                     )}

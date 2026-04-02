@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SuperDreams 超梦 - Control Center',
-  description: 'AI Agent Memory Management System',
+  title: 'SuperDreams // Control Center',
+  description: 'AI Agent Cognitive Memory Management System - Neural Network Operations',
 };
 
 export default function RootLayout({
@@ -12,8 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN">
-      <body>{children}</body>
+    <html lang="zh-CN" className="dark">
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

@@ -122,12 +122,24 @@ function initSchema(db: SqlJsDatabase) {
     )
   `)
 
+  // 同步日志表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS sync_log (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('success','error')),
+      message TEXT DEFAULT '',
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
   // 索引
   db.run('CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type)')
   db.run('CREATE INDEX IF NOT EXISTS idx_memories_importance ON memories(importance DESC)')
   db.run('CREATE INDEX IF NOT EXISTS idx_memories_created ON memories(created_at DESC)')
   db.run('CREATE INDEX IF NOT EXISTS idx_health_date ON health(date DESC)')
   db.run('CREATE INDEX IF NOT EXISTS idx_dreams_date ON dreams(date DESC)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_sync_log_timestamp ON sync_log(timestamp DESC)')
 }
 
 // ---------- 查询辅助函数 ----------
@@ -377,6 +389,23 @@ export async function getStats(): Promise<Stats> {
     connections: totalTags,
     typeDistribution,
   }
+}
+
+// ---------- 同步日志操作 ----------
+export const syncLogDb = {
+  async getAll(limit: number = 20): Promise<{ id: string; type: string; status: string; message: string; timestamp: string }[]> {
+    const db = await getDb()
+    return queryAll(db, 'SELECT * FROM sync_log ORDER BY timestamp DESC LIMIT ?', [limit])
+  },
+
+  async create(entry: { type: string; status: string; message: string }): Promise<void> {
+    const db = await getDb()
+    const id = `sync_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 4)}`
+    const now = new Date().toISOString()
+    runSql(db, 'INSERT INTO sync_log (id, type, status, message, timestamp) VALUES (?, ?, ?, ?, ?)',
+      [id, entry.type, entry.status, entry.message, now])
+    saveDb()
+  },
 }
 
 // 导出用于 dream-engine 的底层查询接口

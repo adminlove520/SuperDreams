@@ -2,6 +2,237 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --cyber-cyan: #00f0ff;
+  --cyber-pink: #ff2d78;
+  --cyber-purple: #b44dff;
+  --cyber-green: #39ff14;
+  --cyber-yellow: #ffe600;
+  --bg-dark: #0a0a0f;
+  --bg-darker: #050508;
+  --bg-panel: #0d0d14;
+  --border: #1a1a2e;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1a1a2e #050508;
+}
+
+*::-webkit-scrollbar { width: 6px; }
+*::-webkit-scrollbar-track { background: #050508; }
+*::-webkit-scrollbar-thumb { background: #1a1a2e; border-radius: 3px; }
+*::-webkit-scrollbar-thumb:hover { background: #00f0ff40; }
+
 body {
-  background-color: #111827;
+  background-color: var(--bg-darker);
+  color: #e8e8f0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ===== Scanline overlay — MORE VISIBLE ===== */
+.scanline::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 240, 255, 0.03) 2px,
+    rgba(0, 240, 255, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== Neon text glow — BRIGHTER ===== */
+.neon-text-cyan {
+  color: #33f5ff;
+  text-shadow: 0 0 8px var(--cyber-cyan), 0 0 25px rgba(0,240,255,0.6), 0 0 50px rgba(0,240,255,0.2);
+}
+
+.neon-text-pink {
+  color: #ff5a9e;
+  text-shadow: 0 0 8px var(--cyber-pink), 0 0 25px rgba(255,45,120,0.6), 0 0 50px rgba(255,45,120,0.2);
+}
+
+.neon-text-green {
+  color: #66ff44;
+  text-shadow: 0 0 8px var(--cyber-green), 0 0 25px rgba(57,255,20,0.6), 0 0 50px rgba(57,255,20,0.2);
+}
+
+.neon-text-purple {
+  color: #c777ff;
+  text-shadow: 0 0 8px var(--cyber-purple), 0 0 25px rgba(180,77,255,0.6), 0 0 50px rgba(180,77,255,0.2);
+}
+
+.neon-text-yellow {
+  color: #ffed33;
+  text-shadow: 0 0 8px var(--cyber-yellow), 0 0 25px rgba(255,230,0,0.5);
+}
+
+/* ===== Cyber border glow — ENHANCED ===== */
+.cyber-border {
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+.cyber-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0,240,255,0.4), transparent 40%, rgba(180,77,255,0.2) 60%, transparent 80%, rgba(255,45,120,0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ===== Glitch effect ===== */
+@keyframes glitch {
+  0% { text-shadow: 2px 0 var(--cyber-cyan), -2px 0 var(--cyber-pink); }
+  25% { text-shadow: -2px 0 var(--cyber-cyan), 2px 0 var(--cyber-pink); }
+  50% { text-shadow: 2px 2px var(--cyber-cyan), -2px -2px var(--cyber-pink); }
+  75% { text-shadow: -2px 2px var(--cyber-cyan), 2px -2px var(--cyber-pink); }
+  100% { text-shadow: 2px 0 var(--cyber-cyan), -2px 0 var(--cyber-pink); }
+}
+
+.glitch-text {
+  animation: glitch 3s infinite;
+}
+
+/* ===== Grid pattern background — MORE VISIBLE ===== */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0,240,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ===== Holographic card effect — ENHANCED ===== */
+.holo-card {
+  background: linear-gradient(135deg, rgba(13,13,20,0.95), rgba(26,26,46,0.6));
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0,240,255,0.12);
+}
+
+.holo-card:hover {
+  box-shadow: 0 0 20px rgba(0,240,255,0.2), 0 0 40px rgba(0,240,255,0.05), inset 0 0 20px rgba(0,240,255,0.05);
+  border-color: rgba(0,240,255,0.5);
+  transform: translateY(-1px);
+}
+
+/* ===== Pulsing dot ===== */
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(57,255,20,0.7); }
+  50% { box-shadow: 0 0 0 8px rgba(57,255,20,0); }
+}
+
+.pulse-dot-green { animation: pulse-dot 2s infinite; }
+
+.pulse-dot-red {
+  animation: pulse-dot 2s infinite;
+  box-shadow: 0 0 0 0 rgba(255,45,120,0.7);
+}
+
+@keyframes pulse-dot-red-kf {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,45,120,0.7); }
+  50% { box-shadow: 0 0 0 8px rgba(255,45,120,0); }
+}
+.pulse-dot-red { animation: pulse-dot-red-kf 2s infinite; }
+
+/* ===== Data matrix background — RICHER ===== */
+.data-matrix {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0,240,255,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(255,45,120,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 0%, rgba(180,77,255,0.08) 0%, transparent 50%);
+}
+
+/* ===== Orbitron for headings ===== */
+.font-orbitron {
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* ===== Terminal cursor ===== */
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.terminal-cursor::after {
+  content: '█';
+  color: var(--cyber-cyan);
+  animation: blink-cursor 1s step-end infinite;
+  margin-left: 2px;
+}
+
+/* ===== Progress bar glow ===== */
+.progress-glow {
+  box-shadow: 0 0 10px rgba(0,240,255,0.6), 0 0 20px rgba(0,240,255,0.2);
+}
+
+/* ===== Neon border cards ===== */
+.neon-border-cyan {
+  border: 1px solid rgba(0,240,255,0.3);
+  box-shadow: 0 0 8px rgba(0,240,255,0.1), inset 0 0 8px rgba(0,240,255,0.03);
+}
+.neon-border-cyan:hover {
+  border-color: rgba(0,240,255,0.6);
+  box-shadow: 0 0 15px rgba(0,240,255,0.2), inset 0 0 15px rgba(0,240,255,0.05);
+}
+
+.neon-border-pink {
+  border: 1px solid rgba(255,45,120,0.3);
+  box-shadow: 0 0 8px rgba(255,45,120,0.1), inset 0 0 8px rgba(255,45,120,0.03);
+}
+
+.neon-border-green {
+  border: 1px solid rgba(57,255,20,0.3);
+  box-shadow: 0 0 8px rgba(57,255,20,0.1), inset 0 0 8px rgba(57,255,20,0.03);
+}
+
+.neon-border-purple {
+  border: 1px solid rgba(180,77,255,0.3);
+  box-shadow: 0 0 8px rgba(180,77,255,0.1), inset 0 0 8px rgba(180,77,255,0.03);
+}
+
+/* ===== Stat card enhanced ===== */
+.stat-card {
+  background: linear-gradient(180deg, rgba(13,13,20,0.9) 0%, rgba(10,10,15,0.95) 100%);
+  border: 1px solid rgba(0,240,255,0.15);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+.stat-card:hover {
+  border-color: rgba(0,240,255,0.4);
+  box-shadow: 0 0 20px rgba(0,240,255,0.1);
+}
+
+/* ===== Breathing animation ===== */
+@keyframes breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.animate-breathe { animation: breathe 3s ease-in-out infinite; }
+
+/* ===== Matrix rain effect ===== */
+@keyframes matrix-rain {
+  0% { transform: translateY(-100%); opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* ===== Improved label readability ===== */
+.label-bright {
+  color: #9ca3af;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }

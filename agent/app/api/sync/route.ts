@@ -1,5 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { memoryDb, dreamDb } from '@/lib/db'
+import { memoryDb, dreamDb, syncLogDb } from '@/lib/db'
+
+export const dynamic = 'force-dynamic'
+
+/**
+ * GET /api/sync?action=logs — 获取同步日志
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const action = searchParams.get('action')
+
+    if (action === 'logs') {
+      const logs = await syncLogDb.getAll(20)
+      return NextResponse.json({ logs })
+    }
+
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+  } catch (error: any) {
+    console.error('Sync GET error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
 
 /**
  * POST /api/sync — 同步本地数据到 Control Center
@@ -33,11 +55,28 @@ export async function POST(request: NextRequest) {
       contentPreview: m.summary.substring(0, 200),
     }))
 
-    const memRes = await fetch(`${centerUrl}/api/sync/memory`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ memories: memoryPayload }),
-    })
+    let memStatus = 0
+    try {
+      const memRes = await fetch(`${centerUrl}/api/sync/memory`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ memories: memoryPayload }),
+      })
+      memStatus = memRes.status
+
+      // Log success
+      await syncLogDb.create({
+        type: 'memory',
+        status: 'success',
+        message: `同步 ${memoryPayload.length} 条记忆到 ${centerUrl}`,
+      })
+    } catch (e: any) {
+      await syncLogDb.create({
+        type: 'memory',
+        status: 'error',
+        message: `记忆同步失败: ${e.message}`,
+      })
+    }
 
     // 同步最近的做梦记录
     const dreams = await dreamDb.getAll(10)
@@ -49,24 +88,41 @@ export async function POST(request: NextRequest) {
       status: d.status,
     }))
 
-    const dreamRes = await fetch(`${centerUrl}/api/sync/dream`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ dreams: dreamPayload }),
-    })
+    let dreamStatus = 0
+    try {
+      const dreamRes = await fetch(`${centerUrl}/api/sync/dream`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ dreams: dreamPayload }),
+      })
+      dreamStatus = dreamRes.status
 
-    // 注意：心跳逻辑在 Center 的 authMiddleware 中已经自动处理
-    // 只要有任何有效的 ApiKey 请求，Center 就可以更新该 Agent 的 last_heartbeat
-    // 这里的显式心跳调用可以简化或省略，或者在 Agent 有了自己的 ID 后再恢复。
+      await syncLogDb.create({
+        type: 'dream',
+        status: 'success',
+        message: `同步 ${dreamPayload.length} 条梦境到 ${centerUrl}`,
+      })
+    } catch (e: any) {
+      await syncLogDb.create({
+        type: 'dream',
+        status: 'error',
+        message: `梦境同步失败: ${e.message}`,
+      })
+    }
 
     return NextResponse.json({
       success: true,
       status: 'synced',
-      memories: { sent: memoryPayload.length, status: memRes.status },
-      dreams: { sent: dreamPayload.length, status: dreamRes.status },
+      memories: { sent: memoryPayload.length, status: memStatus },
+      dreams: { sent: dreamPayload.length, status: dreamStatus },
     })
   } catch (error: any) {
     console.error('Sync error:', error)
+    await syncLogDb.create({
+      type: 'memory',
+      status: 'error',
+      message: `同步失败: ${error.message}`,
+    }).catch(() => {})
     return NextResponse.json(
       { error: 'Sync failed', details: error.message },
       { status: 500 }

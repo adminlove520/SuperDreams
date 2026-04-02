@@ -2,6 +2,28 @@
 
 All notable changes will be documented in this file.
 
+## [4.1.0] - 2026-04-02
+
+### Added
+- **Neon Glow UI** — Enhanced agent dashboard with neon glow effects, animated borders, gradient text shadows
+- **Memory Matrix** — New `MemoryMatrix` component visualizing memory type distribution with animated bars
+- **Sync Log** — New `SyncLog` component displaying sync history with status indicators
+- **Sync Log DB** — Added `sync_log` table to agent SQLite for persistent sync tracking
+- **Sync Log API** — `GET /api/sync?action=logs` endpoint for retrieving sync history
+- **Vercel KV** — Control Center supports Vercel KV as persistent store (auto-detects via env vars)
+- **`.env.example`** — Added environment variable documentation for Center
+
+### Enhanced
+- **CSS Theme** — Complete overhaul of agent `globals.css` with neon glow system (`.neon-text-*`, `.neon-card`, `.neon-btn`, `.ambient-glow`, `.grid-bg`)
+- **Text Contrast** — Improved readability with `.text-bright`, `.text-medium`, `.text-dim`, `.text-muted` utility classes
+- **All Components** — Updated HealthRing, StatsGrid, RecentDreams, RecentMemories, SyncSettings with neon styling
+- **Tailwind Config** — Extended with neon color palette, custom box shadows, and animation utilities
+- **Header** — Added neon glow effect to header with subtle green border
+
+### Fixed
+- `SyncSettings` used `useState` for initialization instead of `useEffect` (corrected)
+- Sync route now logs all sync operations to the sync_log table
+
 ## [4.0.0] - 2026-04-02
 
 ### Breaking Changes

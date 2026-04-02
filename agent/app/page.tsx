@@ -5,13 +5,15 @@ import { motion } from 'framer-motion'
 import { 
   Moon, Sparkles, Settings, Bell,
   RefreshCw, AlertCircle, Brain, X,
-  ExternalLink
+  ExternalLink, Activity
 } from 'lucide-react'
 import HealthRing from '@/components/HealthRing'
 import StatsGrid from '@/components/StatsGrid'
 import RecentMemories from '@/components/RecentMemories'
 import RecentDreams from '@/components/RecentDreams'
 import SyncSettings from '@/components/SyncSettings'
+import MemoryMatrix from '@/components/MemoryMatrix'
+import SyncLog from '@/components/SyncLog'
 import type { Health, Stats, Memory, Dream } from '@/lib/types'
 
 // ========== API ==========
@@ -24,20 +26,23 @@ async function fetchApi<T>(endpoint: string): Promise<T> {
 // ========== Helpers ==========
 function LoadingSpinner({ text = '加载中...' }: { text?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-8">
-      <RefreshCw className="w-8 h-8 text-zinc-500 animate-spin" />
-      <span className="text-zinc-400">{text}</span>
+    <div className="flex flex-col items-center justify-center gap-3 py-12">
+      <div className="relative">
+        <RefreshCw className="w-8 h-8 text-green-500/60 animate-spin" />
+        <div className="absolute inset-0 w-8 h-8 rounded-full animate-pulse-glow-green" />
+      </div>
+      <span className="text-dim text-sm">{text}</span>
     </div>
   )
 }
 
 function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
       <AlertCircle className="w-10 h-10 text-zinc-600" />
-      <p className="text-zinc-400">{message}</p>
+      <p className="text-dim">{message}</p>
       {onRetry && (
-        <button onClick={onRetry} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm">
+        <button onClick={onRetry} className="px-4 py-2 bg-zinc-800/80 hover:bg-zinc-700 text-medium rounded-lg text-sm border border-zinc-700/50 transition-colors">
           重试
         </button>
       )}
@@ -111,17 +116,17 @@ export default function Home() {
   useEffect(() => { loadData() }, [])
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
+    <div className="min-h-screen bg-panel-dark text-zinc-100 font-sans grid-bg ambient-glow">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-800">
+      <header className="sticky top-0 z-50 header-glow">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-lg shadow-green-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-neon-green animate-pulse-glow">
               <Moon className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-semibold text-lg text-zinc-100 tracking-tight">SuperDreams</h1>
-              <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest">Cognitive Core v4.0</p>
+              <h1 className="font-bold text-lg text-bright tracking-tight">SuperDreams</h1>
+              <p className="text-[10px] text-green-500/70 font-mono font-medium uppercase tracking-widest">Cognitive Core v4.1</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -129,41 +134,41 @@ export default function Home() {
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => { setShowNotif(!showNotif); setShowSettings(false) }}
-                className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 hover:text-zinc-100 relative"
+                className="p-2 hover:bg-zinc-800/60 rounded-xl transition-colors text-dim hover:text-bright relative"
               >
                 <Bell className="w-5 h-5" />
                 {dreams.length > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full sync-pulse" />
                 )}
               </button>
               {showNotif && (
-                <div className="absolute right-0 top-12 w-80 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
-                    <span className="font-semibold text-sm">通知</span>
-                    <button onClick={() => setShowNotif(false)} className="text-zinc-500 hover:text-zinc-300">
+                <div className="absolute right-0 top-12 w-80 neon-card overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-zinc-800/60 flex items-center justify-between">
+                    <span className="font-semibold text-sm text-bright">通知</span>
+                    <button onClick={() => setShowNotif(false)} className="text-muted hover:text-dim">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                   <div className="max-h-72 overflow-y-auto">
                     {dreams.length === 0 ? (
-                      <div className="px-4 py-6 text-center text-zinc-500 text-sm">暂无通知</div>
+                      <div className="px-4 py-6 text-center text-muted text-sm">暂无通知</div>
                     ) : (
                       dreams.slice(0, 5).map((d) => (
-                        <div key={d.id} className="px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/50">
+                        <div key={d.id} className="px-4 py-3 border-b border-zinc-800/30 hover:bg-zinc-800/30">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium">
+                            <span className="text-xs font-medium text-bright">
                               {d.status === 'completed' ? '🌙 梦境完成' : d.status === 'failed' ? '❌ 梦境失败' : '⏳ 进行中'}
                             </span>
-                            <span className="text-[10px] text-zinc-600">{d.date}</span>
+                            <span className="text-[10px] text-muted font-mono">{d.date}</span>
                           </div>
-                          <p className="text-xs text-zinc-400">
+                          <p className="text-xs text-dim">
                             扫描 {d.scanned_files} 个文件, 新增 {d.new_entries} 条记忆, 健康度 {d.health_score}
                           </p>
                         </div>
                       ))
                     )}
                   </div>
-                  <a href="/dreams" className="block px-4 py-2.5 text-center text-xs text-green-400 hover:bg-zinc-800/50 border-t border-zinc-800">
+                  <a href="/dreams" className="block px-4 py-2.5 text-center text-xs neon-text-green hover:bg-zinc-800/30 border-t border-zinc-800/60">
                     查看全部梦境记录 →
                   </a>
                 </div>
@@ -174,27 +179,27 @@ export default function Home() {
             <div className="relative" ref={settingsRef}>
               <button
                 onClick={() => { setShowSettings(!showSettings); setShowNotif(false) }}
-                className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 hover:text-zinc-100"
+                className="p-2 hover:bg-zinc-800/60 rounded-xl transition-colors text-dim hover:text-bright"
               >
                 <Settings className="w-5 h-5" />
               </button>
               {showSettings && (
-                <div className="absolute right-0 top-12 w-64 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-zinc-800">
-                    <span className="font-semibold text-sm">设置</span>
+                <div className="absolute right-0 top-12 w-64 neon-card overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-zinc-800/60">
+                    <span className="font-semibold text-sm text-bright">设置</span>
                   </div>
                   <div className="py-1">
-                    <a href="/memories" className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/50 text-sm text-zinc-300">
+                    <a href="/memories" className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/30 text-sm text-medium">
                       <Brain className="w-4 h-4 text-purple-400" />
                       记忆管理
                     </a>
-                    <a href="/dreams" className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/50 text-sm text-zinc-300">
+                    <a href="/dreams" className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/30 text-sm text-medium">
                       <Moon className="w-4 h-4 text-blue-400" />
                       梦境记录
                     </a>
                     <button
                       onClick={() => { loadData(); setShowSettings(false) }}
-                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/50 text-sm text-zinc-300 w-full text-left"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/30 text-sm text-medium w-full text-left"
                     >
                       <RefreshCw className="w-4 h-4 text-green-400" />
                       刷新数据
@@ -203,15 +208,15 @@ export default function Home() {
                       href="https://github.com/adminlove520/SuperDreams"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/50 text-sm text-zinc-300"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/30 text-sm text-medium"
                     >
-                      <ExternalLink className="w-4 h-4 text-zinc-500" />
+                      <ExternalLink className="w-4 h-4 text-muted" />
                       GitHub
                     </a>
                   </div>
-                  <div className="px-4 py-3 border-t border-zinc-800">
-                    <p className="text-[10px] text-zinc-600">SuperDreams v4.0.0</p>
-                    <p className="text-[10px] text-zinc-600">Agent Dashboard (sql.js)</p>
+                  <div className="px-4 py-3 border-t border-zinc-800/60">
+                    <p className="text-[10px] text-muted font-mono">SuperDreams v4.1.0</p>
+                    <p className="text-[10px] text-muted font-mono">Agent Dashboard (sql.js)</p>
                   </div>
                 </div>
               )}
@@ -228,16 +233,16 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-semibold mb-6 border border-green-500/20">
-            <Brain className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/10 text-green-400 text-xs font-semibold mb-6 border border-green-500/20 animate-breathe">
+            <Activity className="w-3.5 h-3.5" />
             AI 驱动的认知记忆系统
           </div>
           <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
-            <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-blue-500 bg-clip-text text-transparent">
+            <span className="neon-text-green">
               让记忆被看见。
             </span>
           </h2>
-          <p className="text-zinc-400 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+          <p className="text-dim max-w-xl mx-auto text-sm md:text-base leading-relaxed">
             SuperDreams 每天在后台「做梦」，整理记忆碎片，计算认知健康度，追踪你的成长轨迹。
           </p>
         </motion.div>
@@ -252,7 +257,7 @@ export default function Home() {
           <button
             onClick={triggerDream}
             disabled={dreaming}
-            className="group px-8 py-3 bg-white text-zinc-950 hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500 rounded-2xl font-bold flex items-center gap-3 shadow-xl shadow-white/5 transition-all active:scale-95"
+            className="neon-btn flex items-center gap-3 text-base"
           >
             <Sparkles className={`w-5 h-5 ${dreaming ? 'animate-spin' : 'group-hover:rotate-12 transition-transform'}`} />
             {dreaming ? '正在重塑认知...' : '触发核心做梦记录'}
@@ -278,6 +283,12 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Memory Matrix + Sync Log */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {stats && <MemoryMatrix typeDistribution={stats.typeDistribution} totalMemories={stats.memories} />}
+              <SyncLog />
+            </div>
+
             {/* Bottom Grid: Recent Activities */}
             <div className="grid md:grid-cols-2 gap-6">
               <RecentDreams dreams={dreams} />
@@ -288,9 +299,9 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="max-w-6xl mx-auto px-4 py-12 text-center border-t border-zinc-900 mt-12">
-        <p className="text-zinc-500 text-xs font-medium tracking-widest uppercase mb-2">SuperDreams 4.0</p>
-        <p className="text-zinc-600 text-[10px]">由龙虾驱动的认知计算引擎</p>
+      <footer className="max-w-6xl mx-auto px-4 py-12 text-center border-t border-zinc-800/50 mt-12">
+        <p className="neon-text-green text-xs font-mono font-medium tracking-widest uppercase mb-2">SuperDreams 4.1</p>
+        <p className="text-muted text-[10px]">由龙虾驱动的认知计算引擎</p>
       </footer>
     </div>
   )
