@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { memoryDb, dreamDb, syncLogDb } from '@/lib/db'
+import { memoryDb, dreamDb, syncLogDb } from '@/lib/store'
 
 export const dynamic = 'force-dynamic'
 

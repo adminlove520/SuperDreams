@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { memoryDb } from '@/lib/db'
+import { memoryDb } from '@/lib/store'
 import type { MemoryType } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'

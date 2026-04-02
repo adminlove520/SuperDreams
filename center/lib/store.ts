@@ -57,27 +57,36 @@ export interface SearchResult extends MemoryIndex {
 
 // ==================== Environment Detection ====================
 function isKV(): boolean {
-  return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+  return !!(
+    (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) ||
+    (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
+  );
 }
 
 // ==================== KV Store Implementation ====================
-// Uses Vercel KV (Redis-compatible) with JSON-serialized data
-// Key schema:
-//   agent:{id}             → Agent object
-//   agents:index           → string[] of agent IDs
-//   memory:{id}            → MemoryIndex object  
-//   memories:agent:{agentId} → number[] of memory IDs
-//   memories:counter       → auto-increment counter
-//   dream:{id}             → DreamIndex object
-//   dreams:agent:{agentId} → number[] of dream IDs
-//   dreams:counter         → auto-increment counter
-//   synclog:{id}           → SyncLogEntry object
-//   synclog:all            → number[] of sync log IDs (sorted by time)
-//   synclog:counter        → auto-increment counter
+// Uses Upstash Redis (previously Vercel KV) with JSON-serialized data
+// Key schema (prefix ctr: = center):
+//   ctr:agent:{id}             → Agent object
+//   ctr:agents:index           → string[] of agent IDs
+//   ctr:memory:{id}            → MemoryIndex object  
+//   ctr:memories:agent:{agentId} → number[] of memory IDs
+//   ctr:memories:counter       → auto-increment counter
+//   ctr:dream:{id}             → DreamIndex object
+//   ctr:dreams:agent:{agentId} → number[] of dream IDs
+//   ctr:dreams:counter         → auto-increment counter
+//   ctr:synclog:{id}           → SyncLogEntry object
+//   ctr:synclog:all            → number[] of sync log IDs (sorted by time)
+//   ctr:synclog:counter        → auto-increment counter
 
+let _redis: any = null;
 async function getKV() {
-  const { kv } = await import('@vercel/kv');
-  return kv;
+  if (_redis) return _redis;
+  const { Redis } = await import('@upstash/redis');
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  if (!url || !token) throw new Error('Missing Redis/KV environment variables');
+  _redis = new Redis({ url, token });
+  return _redis;
 }
 
 const kvStore = {

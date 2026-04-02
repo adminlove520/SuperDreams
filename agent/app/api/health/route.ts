@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { healthDb } from '@/lib/db'
+import { healthDb } from '@/lib/store'
 
 export const dynamic = 'force-dynamic'
 

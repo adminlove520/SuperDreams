@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { dreamDb } from '@/lib/db'
+import { dreamDb } from '@/lib/store'
 import { executeDream } from '@/lib/dream-engine'
 
 // GET: 获取做梦历史
