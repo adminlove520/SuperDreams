@@ -56,7 +56,7 @@ async function getDb(): Promise<SqlJsDatabase> {
       }
     }
 
-    const SQL = await initSqlJs(wasmBinary ? { wasmBinary } : {})
+    const SQL = await initSqlJs(wasmBinary ? { wasmBinary } as any : undefined)
     _dbPath = getDbPath()
 
     if (fs.existsSync(_dbPath)) {
