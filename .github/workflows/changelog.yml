@@ -35,7 +35,8 @@ jobs:
       - name: Get changed files
         id: changes
         run: |
-          CHANGES=$(git diff --name-only HEAD~1 HEAD | head -20)
+          # Get changed files as comma-separated list (GITHUB_OUTPUT format requires single line)
+          CHANGES=$(git diff --name-only HEAD~1 HEAD | tr '\n' ',' | sed 's/,$//')
           echo "files=$CHANGES" >> $GITHUB_OUTPUT
 
       - name: Generate changelog entry
@@ -43,28 +44,29 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.version }}
           DATE=$(date +'%Y-%m-%d')
+          FILES=${{ steps.changes.outputs.files }}
+          
+          # Convert comma-separated back to array for checking
+          IFS=',' read -ra FILE_ARRAY <<< "$FILES"
           
           # Generate changelog entry based on changes
           ENTRY="## [$VERSION] - $DATE\n\n"
           
-          if echo "$CHANGES" | grep -q "SKILLS/"; then
-            ENTRY+="### Skills\n- SKILL updates\n"
-          fi
-          if echo "$CHANGES" | grep -q "docs/"; then
-            ENTRY+="### Docs\n- Documentation updates\n"
-          fi
-          if echo "$CHANGES" | grep -q "scripts/"; then
-            ENTRY+="### Scripts\n- Script improvements\n"
-          fi
-          if echo "$CHANGES" | grep -q "ARCHITECTURE"; then
-            ENTRY+="### Architecture\n- Architecture improvements\n"
-          fi
-          if echo "$CHANGES" | grep -q "server.js"; then
-            ENTRY+="### Server\n- API server updates\n"
-          fi
-          if echo "$CHANGES" | grep -q "web/"; then
-            ENTRY+="### Web\n- Web UI updates\n"
-          fi
+          for file in "${FILE_ARRAY[@]}"; do
+            case "$file" in
+              SKILLS/*) HAS_SKILLS=1 ;;
+              docs/*) HAS_DOCS=1 ;;
+              scripts/*) HAS_SCRIPTS=1 ;;
+              *ARCHITECTURE*) HAS_ARCH=1 ;;
+              server.js|web/*|api/*) HAS_WEB=1 ;;
+            esac
+          done
+          
+          [ -n "$HAS_SKILLS" ] && ENTRY+="### Skills\n- SKILL updates\n"
+          [ -n "$HAS_DOCS" ] && ENTRY+="### Docs\n- Documentation updates\n"
+          [ -n "$HAS_SCRIPTS" ] && ENTRY+="### Scripts\n- Script improvements\n"
+          [ -n "$HAS_ARCH" ] && ENTRY+="### Architecture\n- Architecture improvements\n"
+          [ -n "$HAS_WEB" ] && ENTRY+="### Web\n- Web UI/Server updates\n"
           
           ENTRY+="\n"
           

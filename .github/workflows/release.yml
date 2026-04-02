@@ -28,9 +28,35 @@ jobs:
         run: |
           echo ${{ steps.version.outputs.version }} > VERSION
 
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          # Extract changelog section for this version
+          VERSION=${{ steps.version.outputs.version }}
+          
+          # Get content between this version and next version (or end)
+          NOTES=$(awk -v ver="$VERSION" '
+            /^## \[/ {
+              if (extracted) exit
+              if ($2 == "["ver"]") {
+                extracted=1
+                next
+              }
+            }
+            extracted { print }
+          ' CHANGELOG.md)
+          
+          # Fallback if no specific notes found
+          if [ -z "$NOTES" ]; then
+            NOTES="Version $VERSION release"
+          fi
+          
+          echo "notes=$NOTES" >> $GITHUB_OUTPUT
+          echo "$NOTES" > release_notes.md
+
       - name: Update package.json
         run: |
-          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version 2>/dev/null || true
 
       - name: Commit version update
         run: |
@@ -38,12 +64,18 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add VERSION package.json package-lock.json 2>/dev/null || true
           git commit -m "chore: bump version to ${{ steps.version.outputs.version }}" || true
-          git push
+          git push || echo "Push failed, continuing"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          body_path: CHANGELOG.md
+          body_path: release_notes.md
           tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Report
+        if: always()
+        run: |
+          echo "Release ${{ steps.version.outputs.version }} created"

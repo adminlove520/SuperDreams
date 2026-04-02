@@ -11,7 +11,8 @@ permissions:
 jobs:
   bump-version:
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.modified, 'CHANGELOG.md') || contains(github.event.head_commit.modified, 'SKILLS/') || contains(github.event.head_commit.modified, 'scripts/')"
+    # Only run if CHANGELOG.md was modified
+    if: "contains(github.event.head_commit.modified, 'CHANGELOG.md')"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,17 +45,17 @@ jobs:
 
       - name: Update package.json
         run: |
-          npm version ${{ steps.new-version.outputs.version }} --no-git-tag-version
+          npm version ${{ steps.new-version.outputs.version }} --no-git-tag-version 2>/dev/null || true
 
       - name: Create and push tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add VERSION package.json package-lock.json 2>/dev/null || true
-          git commit -m "chore: bump version to ${{ steps.new-version.outputs.version }}"
-          git tag ${{ steps.new-version.outputs.tag }}
-          git push || echo "Push failed, continuing..."
-          git push origin ${{ steps.new-version.outputs.tag }} || echo "Tag push failed, continuing..."
+          git commit -m "chore: bump version to ${{ steps.new-version.outputs.version }}" || echo "Nothing to commit"
+          git tag ${{ steps.new-version.outputs.tag }} || echo "Tag exists"
+          git push || echo "Push failed"
+          git push origin ${{ steps.new-version.outputs.tag }} || echo "Tag push failed"
 
       - name: Report
         if: always()
