@@ -72,6 +72,23 @@ openclaw cron add --name "xiaoxi-dreams" \
   --payload "做个梦"
 ```
 
+或通过 Gateway 工具配置：
+
+```json
+{
+  "name": "xiaoxi-dreams",
+  "schedule": { "kind": "cron", "expr": "0 4 * * *", "tz": "Asia/Shanghai" },
+  "payload": { "kind": "agentTurn", "message": "做个梦" },
+  "sessionTarget": "isolated",
+  "delivery": { "mode": "announce", "channel": "telegram" }
+}
+```
+
+**推荐 schedule：**
+- `0 4 * * *` — 每天凌晨 4:00（哥哥睡觉时）
+- `0 6 * * *` — 每天早上 6:00（哥哥起床前）
+- `0 */4 * * *` — 每 4 小时
+
 ## 更新
 
 ```bash
