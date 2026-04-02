@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Documentation updates
 
 
+## [1.3.0] - 2026-04-02
+
+### Docs
+- Documentation updates
+
+
 ## [1.3.0] - 2026-04-02\n\n\n
 
 ## [1.0.0] - 2026-04-02
