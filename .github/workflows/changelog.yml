@@ -1,0 +1,79 @@
+name: Changelog
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.md'
+      - 'SKILLS/**'
+      - 'scripts/**'
+      - 'docs/**'
+      - '!CHANGELOG.md'
+      - '!README.md'
+
+permissions:
+  contents: write
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/v//')
+          if [ -z "$VERSION" ]; then
+            VERSION="1.0.0"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get changed files
+        id: changes
+        run: |
+          CHANGES=$(git diff --name-only HEAD~1 HEAD | head -20)
+          echo "files=$CHANGES" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog entry
+        id: changelog
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          DATE=$(date +'%Y-%m-%d')
+          
+          # Generate changelog entry based on changes
+          ENTRY="## [$VERSION] - $DATE\n\n"
+          
+          if echo "$CHANGES" | grep -q "SKILLS/"; then
+            ENTRY+="### Skills\n- SKILL updates\n"
+          fi
+          if echo "$CHANGES" | grep -q "docs/"; then
+            ENTRY+="### Docs\n- Documentation updates\n"
+          fi
+          if echo "$CHANGES" | grep -q "scripts/"; then
+            ENTRY+="### Scripts\n- Script improvements\n"
+          fi
+          if echo "$CHANGES" | grep -q "ARCHITECTURE"; then
+            ENTRY+="### Architecture\n- Architecture improvements\n"
+          fi
+          
+          ENTRY+="\n"
+          
+          # Prepend to CHANGELOG.md
+          {
+            head -n 5 CHANGELOG.md
+            echo "$ENTRY"
+            tail -n +6 CHANGELOG.md
+          } > CHANGELOG.md.tmp
+          mv CHANGELOG.md.tmp CHANGELOG.md
+
+      - name: Commit changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "docs: auto-update changelog" || true
+          git push
