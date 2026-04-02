@@ -2,7 +2,10 @@
 
 > 小溪的认知记忆系统 — 周期性做梦，让 AI 更聪明地醒来
 
-基于 [Auto-Dream](https://github.com/LeoYeAI/openclaw-auto-dream) 理念构建，专为小溪优化。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/adminlove520/xiaoxi-dreams)](https://github.com/adminlove520/xiaoxi-dreams/stargazers)
+
+基于 [Auto-Dream](https://github.com/LeoYeAI/openclaw-auto-dream) 理念构建，参考 [Claude Code 7 层记忆架构](https://github.com/LeoYeAI/openclaw-auto-dream) 设计。
 
 ---
 
@@ -17,7 +20,7 @@
 
 ---
 
-## 核心功能
+## ✨ 核心功能
 
 - 🧠 **智能记忆整合** — 日志 → 结构化记忆
 - 📊 **健康评分** — 5维指标追踪记忆系统健康度
@@ -26,62 +29,76 @@
 
 ---
 
-## 项目结构
+## 🚀 快速开始
+
+### 安装
+
+```bash
+git clone https://github.com/adminlove520/xiaoxi-dreams.git
+cd xiaoxi-dreams
+./scripts/setup.sh
+openclaw gateway restart
+```
+
+详细安装见 [INSTALL.md](docs/INSTALL.md)
+
+### 触发 Dream
+
+```bash
+# 自动（每天 04:00）
+# 或手动：
+"做个梦"
+```
+
+---
+
+## 📁 项目结构
 
 ```
 xiaoxi-dreams/
 ├── SKILLS/
 │   └── dream.md              # 核心做梦技能
 ├── docs/
-│   ├── memory-template.md     # 记忆模板
-│   └── scoring.md           # 评分算法
+│   ├── README.md             # 文档目录
+│   ├── INSTALL.md            # 安装指南
+│   ├── WORKFLOW.md           # 工作流
+│   ├── ARCHITECTURE.md        # 架构设计
+│   └── scoring.md            # 评分算法
 ├── scripts/
-│   └── setup.sh              # 安装脚本
-└── README.md
+│   ├── setup.sh              # 安装脚本
+│   └── bump-version.sh       # 版本递增
+├── .github/
+│   ├── workflows/
+│   │   └── release.yml       # GitHub Release CI
+│   ├── FUNDING.yml
+│   └── PULL_REQUEST_TEMPLATE/
+├── CLAUDE.md                 # Agent 使用指南
+├── README.md                 # 本文件
+├── VERSION                   # 版本号
+├── package.json
+├── CHANGELOG.md
+├── LICENSE                  # MIT
+└── .gitignore
 ```
 
 ---
 
-## 安装
+## 🏗️ 架构设计
 
-```bash
-# 克隆到 skills 目录
-git clone https://github.com/adminlove520/xiaoxi-dreams.git \
-  ~/.openclaw/workspace/skills/xiaoxi-dreams
-
-# 重启 Gateway
-openclaw gateway restart
 ```
+Dream Cycle (每天 04:00)
+           │
+           ▼
+┌─────────────────────────────────────┐
+│   收集 → 整合 → 评估 → 报告         │
+└─────────────────────────────────────┘
+```
+
+详见 [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ---
 
-## 工作流程
-
-```
-每天 Cron (默认 04:00)
-       │
-       ▼
-┌─────────────────┐
-│  收集 Collect   │  扫描7天内未处理的日志
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  整合 Consolidate│  路由到对应记忆层、去重、分配ID
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  评估 Evaluate  │  重要性评分、生成洞察、更新健康度
-└────────┬────────┘
-         │
-         ▼
-      🔔 推送报告
-```
-
----
-
-## 记忆层级
+## 📊 记忆层级
 
 | 层级 | 文件 | 内容 |
 |------|------|------|
@@ -91,7 +108,7 @@ openclaw gateway restart
 
 ---
 
-## 安全规则
+## 🔒 安全规则
 
 1. 永不删除每日日志 — 只标记 `<!-- consolidated -->`
 2. 永不移除 `⚠️ PERMANENT` 标记的条目
@@ -99,7 +116,7 @@ openclaw gateway restart
 
 ---
 
-## 相关项目
+## 🤝 相关项目
 
 - [Superxiaoxi](https://github.com/adminlove520/superxiaoxi) — 小溪增强版 SKILLs
 - [Auto-Dream](https://github.com/LeoYeAI/openclaw-auto-dream) — 原始项目

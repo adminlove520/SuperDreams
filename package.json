@@ -1,0 +1,18 @@
+{
+  "name": "xiaoxi-dreams",
+  "version": "1.0.0",
+  "description": "小溪的认知记忆系统 - 周期性做梦，让 AI 更聪明地醒来",
+  "main": "index.js",
+  "scripts": {
+    "bump-version": "./scripts/bump-version.sh"
+  },
+  "keywords": [
+    "openclaw",
+    "agent",
+    "memory",
+    "dreaming",
+    "skills"
+  ],
+  "author": "小溪",
+  "license": "MIT"
+}
