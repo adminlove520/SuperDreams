@@ -2,25 +2,9 @@
   "name": "xiaoxi-dreams",
   "version": "3.0.0",
   "private": true,
-  "description": "小溪的认知记忆系统 - AI Agent Memory System",
-  "workspaces": [
-    "web",
-    "api"
-  ],
   "scripts": {
-    "dev": "npm run dev --workspaces",
-    "dev:web": "npm run dev -w web",
-    "dev:api": "npm run dev -w api",
-    "build": "npm run build --workspaces",
-    "start": "npm run start -w api",
-    "dream": "node scripts/dream.js"
-  },
-  "keywords": [
-    "ai",
-    "memory",
-    "agent",
-    "openclaw"
-  ],
-  "author": "小溪",
-  "license": "MIT"
+    "dev": "npm run dev -C web",
+    "build": "npm run build -C web",
+    "start": "npm run start -C web"
+  }
 }
