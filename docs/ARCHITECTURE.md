@@ -8,6 +8,8 @@
 
 ## Claude Code 7 层记忆架构（参考）
 
+> 来源：[How Claude Code Manages Memory - Troy Hua](https://x.com/troyhua/status/2039052328070734102)
+
 | Layer | 名称 | 成本 | 触发时机 |
 |-------|------|------|----------|
 | 1 | 工具结果存储 | 磁盘I/O | 每次工具调用 |
@@ -21,9 +23,58 @@
 ### 关键设计原则
 
 1. **分层防御，便宜的防止贵的触发**
+   - Layer N 防止 Layer N+1 触发
+   - 微压缩防止完全压缩
+   - 会话记忆防止上下文溢出
+
 2. **Prompt Cache 优化** — 一切为了 cache hit
+   - Tool Result Storage 减少 microcompact
+   - ContentReplacementState 冻结决策保持前缀稳定
+   - Fork 消息构造保持字节级一致
+
 3. **熔断器无处不在** — 3次失败就停止
-4. **MEMORY.md 是索引，不是存储** — 每个条目一行 ~150 chars
+   - Autocompact: 3次连续失败后停止
+   - Dream scan: 10分钟节流
+   - Session memory: 顺序执行防止重叠
+
+4. **MEMORY.md 是索引，不是存储**
+   - 每个条目 ~150 chars
+   - 200行 / 25KB 上限
+   - 详细内存在 topic files
+
+5. **互斥设计**
+   - Main agent 写了 memory → background extraction 跳过
+   - Session memory 失败 → 降级到 full compaction
+
+### Layer 6: 做梦系统详解
+
+```
+Gate Sequence (最便宜先检查)
+    │
+    ▼
+Lock 机制 (PID mutex + stale 检测)
+    │
+    ▼
+四阶段:
+  Phase 1 - Orient: 读取 MEMORY.md，理解当前索引
+  Phase 2 - Gather: 扫描日志，检查 drift
+  Phase 3 - Consolidate: 写入/更新 memory files
+  Phase 4 - Prune: 保持 MEMORY.md < 200行
+```
+
+### Layer 3: 会话记忆模板
+
+```markdown
+# Session Title
+# Current State
+# Task specification
+# Files and Functions
+# Workflow
+# Errors & Corrections
+# Learnings
+# Key results
+# Worklog
+```
 
 ## Beads 集成
 
