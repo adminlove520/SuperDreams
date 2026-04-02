@@ -27,6 +27,7 @@
 - 🔔 **推送报告** — 每次 Dream 后主动汇报
 - 📈 **成长追踪** — 记录连续做梦次数、记忆增长
 - ✅ **Beads 任务追踪** — 持久化任务、依赖图、跨会话（需要 Dolt）
+- 🌐 **Web UI + API** — 健康仪表盘可视化，支持本地或 Vercel 部署
 
 ---
 
@@ -59,25 +60,36 @@ openclaw gateway restart
 
 ```
 xiaoxi-dreams/
-├── SKILLS/
-│   └── dream.md              # 核心做梦技能
-├── docs/
-│   ├── README.md             # 文档目录
-│   ├── INSTALL.md            # 安装指南
-│   ├── WORKFLOW.md           # 工作流
-│   ├── ARCHITECTURE.md       # 架构设计
-│   ├── BEADS_INTEGRATION.md  # Beads 集成指南
-│   ├── scoring.md            # 评分算法
-│   └── memory-TEMPLATE.md    # 记忆条目模板
-├── scripts/
-│   ├── setup.sh              # 安装脚本 (Linux/macOS)
+├── SKILLS/                    # OpenClaw SKILLs
+│   ├── dream.md             # Dream v1
+│   ├── dream-v2.md          # Dream v2 (Generator-Evaluator)
+│   └── api.md               # REST API 规范
+├── web/                      # Web UI
+│   └── index.html           # 健康仪表盘
+├── api/                      # Vercel Serverless API
+│   └── index.js             # API Functions
+├── scripts/                  # 脚本
 │   ├── setup.ps1             # 安装脚本 (Windows)
-│   └── bump-version.sh       # 版本递增
-├── .github/
-│   ├── workflows/
-│   │   └── release.yml       # GitHub Release CI
-│   ├── FUNDING.yml
-│   ├── ISSUE_TEMPLATE/
+│   ├── setup.sh              # 安装脚本 (Linux/macOS)
+│   ├── xd.ps1                # Dolt 辅助命令
+│   ├── backup.ps1           # 本地备份
+│   ├── evaluator.ps1         # 报告评审
+│   ├── benchmark.ps1         # 性能测试
+│   └── version.ps1           # 版本管理
+├── docs/                     # 文档
+│   ├── ARCHITECTURE-*.md    # 架构文档
+│   ├── PERFORMANCE.md       # 性能优化
+│   ├── VEREL.md             # Vercel 部署指南
+│   └── ...
+├── .github/                 # CI/CD
+│   ├── workflows/           # GitHub Actions
+│   └── ISSUE_TEMPLATE/
+├── web/index.html           # Web UI
+├── server.js                # 本地 API Server
+├── api/index.js             # Vercel API Functions
+├── vercel.json             # Vercel 配置
+└── ...
+```
 │   │   ├── bug_report.md
 │   │   └── feature_request.md
 │   └── PULL_REQUEST_TEMPLATE/
