@@ -1,9 +1,12 @@
 {
   "name": "xiaoxi-dreams",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "小溪的认知记忆系统 - 周期性做梦，让 AI 更聪明地醒来",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "web": "start",
+    "api": "node server.js",
     "bump-version": "./scripts/bump-version.sh"
   },
   "keywords": [
@@ -14,5 +17,9 @@
     "skills"
   ],
   "author": "小溪",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {}
 }
