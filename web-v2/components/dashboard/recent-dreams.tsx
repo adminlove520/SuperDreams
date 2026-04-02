@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Cloud, ArrowUp, ArrowDown, Minus } from 'lucide-react'
+import { Cloud, ArrowUp, ArrowDown, Minus, AlertCircle } from 'lucide-react'
 import { useDreams } from '@/lib/hooks'
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card'
 
@@ -39,7 +39,7 @@ function DreamRow({ dream, index }: { dream: any; index: number }) {
 }
 
 export function RecentDreams() {
-  const { data, isLoading } = useDreams(5)
+  const { data, isLoading, error } = useDreams(5)
 
   if (isLoading) {
     return (
@@ -49,7 +49,7 @@ export function RecentDreams() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
+            {[1,2,3].map((i) => (
               <div key={i} className="animate-pulse h-16 bg-zinc-800 rounded-xl" />
             ))}
           </div>
@@ -58,7 +58,23 @@ export function RecentDreams() {
     )
   }
 
-  const dreams = data?.dreams || []
+  if (error || !data?.dreams) {
+    return (
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle>最近 Dreams</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <AlertCircle className="w-8 h-8 text-zinc-600 mb-2" />
+            <p className="text-zinc-500">无法加载 Dreams</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const dreams = data.dreams || []
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Lightbulb, Target, BookOpen, User, Folder, Wrench } from 'lucide-react'
+import { Lightbulb, Target, BookOpen, User, Folder, Wrench, AlertCircle } from 'lucide-react'
 import { useMemories } from '@/lib/hooks'
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
@@ -17,8 +17,8 @@ const typeConfig: Record<MemoryType, { icon: React.ElementType; label: string; c
   procedure: { icon: Wrench, label: 'procedure', color: '#06b6d4' },
 }
 
-function MemoryRow({ memory, index }: { memory: { type: MemoryType; importance: number; name: string; summary: string; createdAt: string; tags: string[] }; index: number }) {
-  const config = typeConfig[memory.type] || typeConfig.fact
+function MemoryRow({ memory, index }: { memory: any; index: number }) {
+  const config = typeConfig[memory.type as MemoryType] || typeConfig.fact
 
   return (
     <motion.div
@@ -59,7 +59,7 @@ function MemoryRow({ memory, index }: { memory: { type: MemoryType; importance: 
 }
 
 export function RecentMemories() {
-  const { data, isLoading } = useMemories({ limit: 5 })
+  const { data, isLoading, error } = useMemories({ limit: 5 })
 
   if (isLoading) {
     return (
@@ -69,7 +69,7 @@ export function RecentMemories() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
+            {[1,2,3].map((i) => (
               <div key={i} className="animate-pulse h-20 bg-zinc-800 rounded-xl" />
             ))}
           </div>
@@ -78,7 +78,23 @@ export function RecentMemories() {
     )
   }
 
-  const memories = data?.memories || []
+  if (error || !data?.memories) {
+    return (
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle>最近记忆</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <AlertCircle className="w-8 h-8 text-zinc-600 mb-2" />
+            <p className="text-zinc-500">无法加载记忆</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const memories = data.memories || []
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">

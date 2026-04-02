@@ -3,22 +3,37 @@
 import { motion } from 'framer-motion'
 import { useHealth } from '@/lib/hooks'
 import { Card } from '../ui/card'
+import { AlertCircle, RefreshCw } from 'lucide-react'
 
 export function HealthRing() {
-  const { data: health, isLoading, error } = useHealth()
+  const { data: health, isLoading, error, mutate } = useHealth()
 
   if (isLoading) {
     return (
       <Card className="flex items-center justify-center h-64 bg-zinc-900 border-zinc-800">
-        <div className="animate-pulse text-zinc-400">加载中...</div>
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="w-8 h-8 text-zinc-500 animate-spin" />
+          <span className="text-zinc-400">加载健康度...</span>
+        </div>
       </Card>
     )
   }
 
   if (error || !health) {
     return (
-      <Card className="flex items-center justify-center h-64 bg-zinc-900 border-zinc-800">
-        <div className="text-red-500">无法加载健康度</div>
+      <Card className="flex flex-col items-center justify-center h-64 bg-zinc-900 border-zinc-800 gap-4">
+        <AlertCircle className="w-12 h-12 text-zinc-500" />
+        <div className="text-center">
+          <p className="text-zinc-400 mb-2">无法加载健康度</p>
+          <p className="text-sm text-zinc-600">请确保 API 服务器正在运行</p>
+          <p className="text-xs text-zinc-700 mt-1">cd xiaoxi-dreams && npm start</p>
+        </div>
+        <button 
+          onClick={() => mutate()} 
+          className="mt-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm transition-colors"
+        >
+          重试
+        </button>
       </Card>
     )
   }
@@ -31,9 +46,10 @@ export function HealthRing() {
     healthy: { color: '#22c55e', label: '健康', message: '系统运行良好' },
     warning: { color: '#eab308', label: '注意', message: '建议关注' },
     critical: { color: '#ef4444', label: '告警', message: '需要处理' },
+    unknown: { color: '#71717a', label: '未知', message: '暂无数据' },
   }
 
-  const status = statusConfig[health.status as keyof typeof statusConfig] || statusConfig.warning
+  const status = statusConfig[health.status as keyof typeof statusConfig] || statusConfig.unknown
 
   const dimensionLabels: Record<string, string> = {
     freshness: '新鲜度',
@@ -109,19 +125,21 @@ export function HealthRing() {
       <p className="text-zinc-500 mt-3 text-sm">{status.message}</p>
 
       {/* Dimensions */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="grid grid-cols-2 gap-2 mt-6"
-      >
-        {Object.entries(health.dimensions).map(([key, value]) => (
-          <div key={key} className="flex items-center justify-between text-sm px-3 py-2 bg-zinc-800 rounded-lg">
-            <span className="text-zinc-400">{dimensionLabels[key] || key}</span>
-            <span className="font-mono text-green-500">{(value * 100).toFixed(0)}%</span>
-          </div>
-        ))}
-      </motion.div>
+      {health.dimensions && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="grid grid-cols-2 gap-2 mt-6"
+        >
+          {Object.entries(health.dimensions).map(([key, value]) => (
+            <div key={key} className="flex items-center justify-between text-sm px-3 py-2 bg-zinc-800 rounded-lg">
+              <span className="text-zinc-400">{dimensionLabels[key] || key}</span>
+              <span className="font-mono text-green-500">{(value * 100).toFixed(0)}%</span>
+            </div>
+          ))}
+        </motion.div>
+      )}
     </Card>
   )
 }
