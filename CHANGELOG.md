@@ -3,6 +3,20 @@
 All notable changes will be documented in this file.
 
 ## [4.0.0] - 2026-04-02
+## [1.3.0] - 2026-04-02
+
+### Skills
+- SKILL updates
+### Docs
+- Documentation updates
+### Scripts
+- Script improvements
+### Architecture
+- Architecture improvements
+### Web
+- Web UI/Server updates
+
+
 
 ### Breaking Changes
 - **Renamed**: SuperDreams �?SuperDreams (超梦)
