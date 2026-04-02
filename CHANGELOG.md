@@ -3,6 +3,14 @@
 All notable changes will be documented in this file.
 
 ## [4.0.0] - 2026-04-02
+## [4.0.0] - 2026-04-02
+
+### Skills
+- SKILL updates
+### Architecture
+- Architecture improvements
+
+
 
 ### Breaking Changes
 - **Renamed**: xiaoxi-dreams → SuperDreams (超梦)
