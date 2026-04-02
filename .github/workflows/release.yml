@@ -51,7 +51,11 @@ jobs:
             NOTES="Version $VERSION release"
           fi
           
-          echo "notes=$NOTES" >> $GITHUB_OUTPUT
+          {
+            echo "notes<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
           echo "$NOTES" > release_notes.md
 
       - name: Update package.json

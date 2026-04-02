@@ -35,7 +35,6 @@ jobs:
       - name: Get changed files
         id: changes
         run: |
-          # Get changed files as comma-separated list (GITHUB_OUTPUT format requires single line)
           CHANGES=$(git diff --name-only HEAD~1 HEAD | tr '\n' ',' | sed 's/,$//')
           echo "files=$CHANGES" >> $GITHUB_OUTPUT
 
@@ -46,10 +45,14 @@ jobs:
           DATE=$(date +'%Y-%m-%d')
           FILES=${{ steps.changes.outputs.files }}
           
-          # Convert comma-separated back to array for checking
+          # Check if this version already exists in CHANGELOG.md
+          if grep -q "## \[$VERSION\]" CHANGELOG.md; then
+            echo "Version $VERSION already exists in changelog. Skipping auto-update."
+            exit 0
+          fi
+          
           IFS=',' read -ra FILE_ARRAY <<< "$FILES"
           
-          # Generate changelog entry based on changes
           ENTRY="## [$VERSION] - $DATE\n\n"
           
           for file in "${FILE_ARRAY[@]}"; do
@@ -58,7 +61,7 @@ jobs:
               docs/*) HAS_DOCS=1 ;;
               scripts/*) HAS_SCRIPTS=1 ;;
               *ARCHITECTURE*) HAS_ARCH=1 ;;
-              server.js|web/*|api/*) HAS_WEB=1 ;;
+              agent/*|center/*) HAS_CODE=1 ;;
             esac
           done
           
@@ -66,11 +69,10 @@ jobs:
           [ -n "$HAS_DOCS" ] && ENTRY+="### Docs\n- Documentation updates\n"
           [ -n "$HAS_SCRIPTS" ] && ENTRY+="### Scripts\n- Script improvements\n"
           [ -n "$HAS_ARCH" ] && ENTRY+="### Architecture\n- Architecture improvements\n"
-          [ -n "$HAS_WEB" ] && ENTRY+="### Web\n- Web UI/Server updates\n"
+          [ -n "$HAS_CODE" ] && ENTRY+="### Code\n- Core logic updates\n"
           
           ENTRY+="\n"
           
-          # Prepend to CHANGELOG.md
           {
             head -n 5 CHANGELOG.md
             echo -e "$ENTRY"
@@ -85,9 +87,3 @@ jobs:
           git add CHANGELOG.md
           git commit -m "docs: auto-update changelog" || echo "Nothing to commit"
           git push || echo "Push failed, continuing..."
-
-      - name: Report
-        if: always()
-        run: |
-          echo "Changelog updated for version ${{ steps.version.outputs.version }}"
-          echo "Changed files: ${{ steps.changes.outputs.files }}"
