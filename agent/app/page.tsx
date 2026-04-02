@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Moon, Sparkles, Settings, Bell,
-  RefreshCw, AlertCircle, Brain
+  RefreshCw, AlertCircle, Brain, X,
+  ExternalLink
 } from 'lucide-react'
 import HealthRing from '@/components/HealthRing'
 import StatsGrid from '@/components/StatsGrid'
@@ -13,14 +14,14 @@ import RecentDreams from '@/components/RecentDreams'
 import SyncSettings from '@/components/SyncSettings'
 import type { Health, Stats, Memory, Dream } from '@/lib/types'
 
-// ========== API Base ==========
+// ========== API ==========
 async function fetchApi<T>(endpoint: string): Promise<T> {
   const res = await fetch(endpoint)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
 
-// ========== Components ==========
+// ========== Helpers ==========
 function LoadingSpinner({ text = '加载中...' }: { text?: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-8">
@@ -44,6 +45,17 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
   )
 }
 
+// ========== Dropdown ==========
+function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () => void) {
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [ref, onClose])
+}
+
 // ========== Main Page ==========
 export default function Home() {
   const [health, setHealth] = useState<Health | null>(null)
@@ -53,6 +65,14 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [dreaming, setDreaming] = useState(false)
+
+  // Panels
+  const [showNotif, setShowNotif] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
+  const settingsRef = useRef<HTMLDivElement>(null)
+  useClickOutside(notifRef, () => setShowNotif(false))
+  useClickOutside(settingsRef, () => setShowSettings(false))
 
   async function loadData() {
     setLoading(true)
@@ -100,17 +120,102 @@ export default function Home() {
               <Moon className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-semibold text-lg text-zinc-100 tracking-tight">Superdreams</h1>
+              <h1 className="font-semibold text-lg text-zinc-100 tracking-tight">SuperDreams</h1>
               <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest">Cognitive Core v4.0</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 hover:text-zinc-100">
-              <Bell className="w-5 h-5" />
-            </button>
-            <button className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 hover:text-zinc-100">
-              <Settings className="w-5 h-5" />
-            </button>
+            {/* Notification Button */}
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => { setShowNotif(!showNotif); setShowSettings(false) }}
+                className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 hover:text-zinc-100 relative"
+              >
+                <Bell className="w-5 h-5" />
+                {dreams.length > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full" />
+                )}
+              </button>
+              {showNotif && (
+                <div className="absolute right-0 top-12 w-80 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+                    <span className="font-semibold text-sm">通知</span>
+                    <button onClick={() => setShowNotif(false)} className="text-zinc-500 hover:text-zinc-300">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto">
+                    {dreams.length === 0 ? (
+                      <div className="px-4 py-6 text-center text-zinc-500 text-sm">暂无通知</div>
+                    ) : (
+                      dreams.slice(0, 5).map((d) => (
+                        <div key={d.id} className="px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/50">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium">
+                              {d.status === 'completed' ? '🌙 梦境完成' : d.status === 'failed' ? '❌ 梦境失败' : '⏳ 进行中'}
+                            </span>
+                            <span className="text-[10px] text-zinc-600">{d.date}</span>
+                          </div>
+                          <p className="text-xs text-zinc-400">
+                            扫描 {d.scanned_files} 个文件, 新增 {d.new_entries} 条记忆, 健康度 {d.health_score}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <a href="/dreams" className="block px-4 py-2.5 text-center text-xs text-green-400 hover:bg-zinc-800/50 border-t border-zinc-800">
+                    查看全部梦境记录 →
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Settings Button */}
+            <div className="relative" ref={settingsRef}>
+              <button
+                onClick={() => { setShowSettings(!showSettings); setShowNotif(false) }}
+                className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 hover:text-zinc-100"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+              {showSettings && (
+                <div className="absolute right-0 top-12 w-64 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-zinc-800">
+                    <span className="font-semibold text-sm">设置</span>
+                  </div>
+                  <div className="py-1">
+                    <a href="/memories" className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/50 text-sm text-zinc-300">
+                      <Brain className="w-4 h-4 text-purple-400" />
+                      记忆管理
+                    </a>
+                    <a href="/dreams" className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/50 text-sm text-zinc-300">
+                      <Moon className="w-4 h-4 text-blue-400" />
+                      梦境记录
+                    </a>
+                    <button
+                      onClick={() => { loadData(); setShowSettings(false) }}
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/50 text-sm text-zinc-300 w-full text-left"
+                    >
+                      <RefreshCw className="w-4 h-4 text-green-400" />
+                      刷新数据
+                    </button>
+                    <a
+                      href="https://github.com/adminlove520/SuperDreams"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-800/50 text-sm text-zinc-300"
+                    >
+                      <ExternalLink className="w-4 h-4 text-zinc-500" />
+                      GitHub
+                    </a>
+                  </div>
+                  <div className="px-4 py-3 border-t border-zinc-800">
+                    <p className="text-[10px] text-zinc-600">SuperDreams v4.0.0</p>
+                    <p className="text-[10px] text-zinc-600">Agent Dashboard (sql.js)</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -133,7 +238,7 @@ export default function Home() {
             </span>
           </h2>
           <p className="text-zinc-400 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
-            Superdreams 每天在后台「做梦」，整理记忆碎片，计算认知健康度，追踪你的成长轨迹。
+            SuperDreams 每天在后台「做梦」，整理记忆碎片，计算认知健康度，追踪你的成长轨迹。
           </p>
         </motion.div>
 
@@ -184,8 +289,8 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="max-w-6xl mx-auto px-4 py-12 text-center border-t border-zinc-900 mt-12">
-        <p className="text-zinc-500 text-xs font-medium tracking-widest uppercase mb-2">Superdreams 4.0</p>
-        <p className="text-zinc-600 text-[10px]">🦞 由龙虾驱动的认知计算引擎</p>
+        <p className="text-zinc-500 text-xs font-medium tracking-widest uppercase mb-2">SuperDreams 4.0</p>
+        <p className="text-zinc-600 text-[10px]">由龙虾驱动的认知计算引擎</p>
       </footer>
     </div>
   )

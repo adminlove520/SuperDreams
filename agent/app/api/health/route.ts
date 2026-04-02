@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
       })
     }
     return NextResponse.json(health)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Health API error:', error)
-    return NextResponse.json({ error: 'Failed to get health' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to get health', details: error?.message }, { status: 500 })
   }
 }
