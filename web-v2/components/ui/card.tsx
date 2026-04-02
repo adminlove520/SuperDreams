@@ -17,12 +17,12 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
             'rounded-xl p-5 transition-all duration-200',
             // Variants
             {
-              'bg-bg-card border border-white/5': variant === 'default',
-              'bg-gradient-to-br from-bg-card to-bg-elevated border border-white/5 shadow-xl': variant === 'elevated',
-              'glass rounded-2xl': variant === 'glass',
+              'bg-zinc-800 border border-zinc-700/50': variant === 'default',
+              'bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700/50 shadow-xl': variant === 'elevated',
+              'bg-zinc-800/80 backdrop-blur-xl border border-zinc-700/50 rounded-2xl': variant === 'glass',
             },
             // Hover effect
-            hover && 'hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5',
+            hover && 'hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/5',
             className
           )
         )}
@@ -52,7 +52,7 @@ const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingEleme
     return (
       <h3
         ref={ref}
-        className={twMerge(clsx('text-lg font-semibold text-text'), className)}
+        className={twMerge(clsx('text-lg font-semibold text-zinc-100'), className)}
         {...props}
       />
     )
@@ -65,7 +65,7 @@ const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
     return (
       <div
         ref={ref}
-        className={twMerge(clsx('text-text-muted'), className)}
+        className={twMerge(clsx('text-zinc-400'), className)}
         {...props}
       />
     )
