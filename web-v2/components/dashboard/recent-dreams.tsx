@@ -6,7 +6,7 @@ import { useDreams } from '@/lib/hooks'
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card'
 
 function DreamRow({ dream, index }: { dream: any; index: number }) {
-  const trendIcon = dream.trend === 'up' ? ArrowUp : dream.trend === 'down' ? ArrowDown : Minus
+  const TrendIcon = dream.trend === 'up' ? ArrowUp : dream.trend === 'down' ? ArrowDown : Minus
   const trendColor = dream.trend === 'up' ? 'text-green-500' : dream.trend === 'down' ? 'text-red-500' : 'text-text-muted'
 
   return (
@@ -30,7 +30,7 @@ function DreamRow({ dream, index }: { dream: any; index: number }) {
       <div className="text-right">
         <div className="font-bold text-lg">{dream.healthScore}</div>
         <div className={`flex items-center gap-1 text-sm ${trendColor}`}>
-          <trendIcon className="w-4 h-4" />
+          <TrendIcon className="w-4 h-4" />
           {dream.trendLabel || ''}
         </div>
       </div>
