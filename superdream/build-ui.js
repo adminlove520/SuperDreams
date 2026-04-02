@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -319,4 +326,7 @@
     setInterval(loadData, 30000);
   </script>
 </body>
-</html>
+</html>`;
+
+fs.writeFileSync(path.join(__dirname, 'public', 'index.html'), html);
+console.log('Done! HTML written to public/index.html');
