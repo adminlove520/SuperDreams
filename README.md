@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/adminlove520/xiaoxi-dreams)](https://github.com/adminlove520/xiaoxi-dreams/stargazers)
 
-基于 [Auto-Dream](https://github.com/LeoYeAI/openclaw-auto-dream) 理念构建，参考 [Claude Code 7 层记忆架构](https://github.com/LeoYeAI/openclaw-auto-dream) 设计。
+基于 [Auto-Dream](https://github.com/LeoYeAI/openclaw-auto-dream) 理念构建，参考 [Claude Code 7 层记忆架构](https://x.com/troyhua/status/2039052328070734102) 设计。
 
 ---
 
@@ -26,7 +26,7 @@
 - 📊 **健康评分** — 5维指标追踪记忆系统健康度
 - 🔔 **推送报告** — 每次 Dream 后主动汇报
 - 📈 **成长追踪** — 记录连续做梦次数、记忆增长
-- ✅ **Beads 任务追踪** — 持久化任务、依赖图、跨会话
+- ✅ **Beads 任务追踪** — 持久化任务、依赖图、跨会话（需要 Dolt）
 
 ---
 
@@ -37,7 +37,9 @@
 ```bash
 git clone https://github.com/adminlove520/xiaoxi-dreams.git
 cd xiaoxi-dreams
-./scripts/setup.sh
+./scripts/setup.ps1    # Windows
+# 或
+./scripts/setup.sh    # Linux/macOS
 openclaw gateway restart
 ```
 
@@ -46,7 +48,7 @@ openclaw gateway restart
 ### 触发 Dream
 
 ```bash
-# 自动（每天 04:00）
+# 自动（每天 04:00）- 已配置 cron
 # 或手动：
 "做个梦"
 ```
@@ -63,19 +65,25 @@ xiaoxi-dreams/
 │   ├── README.md             # 文档目录
 │   ├── INSTALL.md            # 安装指南
 │   ├── WORKFLOW.md           # 工作流
-│   ├── ARCHITECTURE.md        # 架构设计
-│   └── scoring.md            # 评分算法
+│   ├── ARCHITECTURE.md       # 架构设计
+│   ├── BEADS_INTEGRATION.md  # Beads 集成指南
+│   ├── scoring.md            # 评分算法
+│   └── memory-TEMPLATE.md    # 记忆条目模板
 ├── scripts/
-│   ├── setup.sh              # 安装脚本
+│   ├── setup.sh              # 安装脚本 (Linux/macOS)
+│   ├── setup.ps1             # 安装脚本 (Windows)
 │   └── bump-version.sh       # 版本递增
 ├── .github/
 │   ├── workflows/
 │   │   └── release.yml       # GitHub Release CI
 │   ├── FUNDING.yml
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.md
+│   │   └── feature_request.md
 │   └── PULL_REQUEST_TEMPLATE/
 ├── CLAUDE.md                 # Agent 使用指南
 ├── README.md                 # 本文件
-├── VERSION                   # 版本号
+├── VERSION                   # 1.0.0
 ├── package.json
 ├── CHANGELOG.md
 ├── LICENSE                  # MIT
@@ -109,11 +117,23 @@ Dream Cycle (每天 04:00)
 
 ---
 
+## 🔧 配置 Cron
+
+```bash
+# 每天凌晨 4:00 自动做梦
+openclaw cron add --name "xiaoxi-dreams" \
+  --schedule "0 4 * * *" \
+  --payload "做个梦"
+```
+
+---
+
 ## 🔒 安全规则
 
 1. 永不删除每日日志 — 只标记 `<!-- consolidated -->`
 2. 永不移除 `⚠️ PERMANENT` 标记的条目
 3. 变更超过 30% 自动备份
+4. MEMORY.md 上限 200 行
 
 ---
 
@@ -121,6 +141,7 @@ Dream Cycle (每天 04:00)
 
 - [Superxiaoxi](https://github.com/adminlove520/superxiaoxi) — 小溪增强版 SKILLs
 - [Auto-Dream](https://github.com/LeoYeAI/openclaw-auto-dream) — 原始项目
+- [Beads](https://github.com/steveyegge/beads) — 任务追踪系统
 
 ---
 
