@@ -25,6 +25,25 @@
 3. **熔断器无处不在** — 3次失败就停止
 4. **MEMORY.md 是索引，不是存储** — 每个条目一行 ~150 chars
 
+## Beads 集成
+
+[Beads](https://github.com/steveyegge/beads) 是 xiaoxi-dreams 的**任务追踪层**：
+
+| Beads 命令 | 用途 |
+|------------|------|
+| `bd init` | 初始化工作区 |
+| `bd create "任务" -p 0` | 创建 P0 任务 |
+| `bd update <id> --claim` | 原子性领取任务 |
+| `bd dep add <child> <parent>` | 建立依赖关系图 |
+| `bd ready` | 列出无阻塞任务 |
+| `bd show <id>` | 查看任务详情 |
+
+**为什么用 Beads：**
+- **持久化** — 任务不丢，跨会话
+- **依赖图** — 自动推导执行顺序
+- **Hash ID** — 多 Agent 不冲突
+- **Dolt 驱动** — 版本控制，可回滚
+
 ## xiaoxi-Dreams 5 层架构
 
 ```
