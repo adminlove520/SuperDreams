@@ -2,6 +2,22 @@
 
 All notable changes will be documented in this file.
 
+## [5.1.0] - 2026-04-03
+
+### Added
+- **npm Workspaces** — Root `package.json` now manages `agent` and `center` as workspaces for unified dependency management.
+- **Production Default URL** — Set default Control Center sync URL to `https://xiaoxi-dreams.vercel.app` in Agent Dashboard.
+
+### Changed
+- **Serverless Migration (Center)** — Replaced `better-sqlite3` with `sql.js` (WASM) in Control Center to support Vercel Serverless environment.
+- **Unified DB Engine** — Both Agent and Center now use the same `sql.js` + WASM architecture for maximum cross-platform compatibility.
+- **Next.js Config Optimization** — Optimized `webpack` externals in `next.config.js` for proper WASM handling in both projects.
+
+### Fixed
+- **Vercel Build Compatibility** — Resolved "better-sqlite3 not found" and "native module" errors during Vercel deployments.
+- **TypeScript Store Errors** — Fixed type mismatch and generic issues in `center/lib/store.ts`.
+- **Git Identity** — Corrected Git author information for Vercel deployment consistency.
+
 ## [4.1.1] - 2026-04-02
 
 ### Added
