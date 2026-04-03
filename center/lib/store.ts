@@ -3,7 +3,7 @@
  * 
  * Auto-detects environment:
  * - If KV_REST_API_URL is set → Vercel KV (production/Vercel)
- * - Otherwise → better-sqlite3 (local development)
+ * - Otherwise → sql.js (local development / Vercel fallback)
  * 
  * All API routes import from this file instead of db.ts directly.
  */
@@ -64,20 +64,6 @@ function isKV(): boolean {
 }
 
 // ==================== KV Store Implementation ====================
-// Uses Upstash Redis (previously Vercel KV) with JSON-serialized data
-// Key schema (prefix ctr: = center):
-//   ctr:agent:{id}             → Agent object
-//   ctr:agents:index           → string[] of agent IDs
-//   ctr:memory:{id}            → MemoryIndex object  
-//   ctr:memories:agent:{agentId} → number[] of memory IDs
-//   ctr:memories:counter       → auto-increment counter
-//   ctr:dream:{id}             → DreamIndex object
-//   ctr:dreams:agent:{agentId} → number[] of dream IDs
-//   ctr:dreams:counter         → auto-increment counter
-//   ctr:synclog:{id}           → SyncLogEntry object
-//   ctr:synclog:all            → number[] of sync log IDs (sorted by time)
-//   ctr:synclog:counter        → auto-increment counter
-
 let _redis: any = null;
 async function getKV() {
   if (_redis) return _redis;
@@ -90,7 +76,7 @@ async function getKV() {
 }
 
 const kvStore = {
-  // ---- Dashboard ----
+  // ... (KV implementation remains the same, assuming it's correctly using the redis client)
   async getDashboard(): Promise<DashboardData> {
     const kv = await getKV();
     const agentIds: string[] = (await kv.get('agents:index')) || [];
@@ -123,7 +109,6 @@ const kvStore = {
     const onlineAgents = agents.filter(a => a.status === 'online').length;
     const memoryByType = Object.entries(typeMap).map(([type, count]) => ({ type, count })).sort((a, b) => b.count - a.count);
 
-    // Recent activity
     const allLogIds: number[] = (await kv.get('synclog:all')) || [];
     const recentLogIds = allLogIds.slice(-10).reverse();
     const recentActivity: SyncLogEntry[] = [];
@@ -135,7 +120,6 @@ const kvStore = {
       }
     }
 
-    // Dreams by day (last 7 days)
     const dreamsByDayMap: Record<string, number> = {};
     for (const agent of agents) {
       const dreamIds: number[] = (await kv.get(`dreams:agent:${agent.id}`)) || [];
@@ -164,7 +148,6 @@ const kvStore = {
     };
   },
 
-  // ---- Agents ----
   async getAgents(): Promise<AgentSummary[]> {
     const kv = await getKV();
     const agentIds: string[] = (await kv.get('agents:index')) || [];
@@ -194,26 +177,21 @@ const kvStore = {
     const kv = await getKV();
     const agent = await kv.get<Agent>(`agent:${id}`);
     if (!agent) return null;
-
     const memIds: number[] = (await kv.get(`memories:agent:${id}`)) || [];
     const dreamIds: number[] = (await kv.get(`dreams:agent:${id}`)) || [];
-
     const recentMemories: MemoryIndex[] = [];
     for (const mid of memIds.slice(-10).reverse()) {
       const mem = await kv.get<MemoryIndex>(`memory:${mid}`);
       if (mem) recentMemories.push(mem);
     }
-
     const recentDreams: DreamIndex[] = [];
     for (const did of dreamIds.slice(-5).reverse()) {
       const dream = await kv.get<DreamIndex>(`dream:${did}`);
       if (dream) recentDreams.push(dream);
     }
-
     let importanceSum = 0;
     for (const m of recentMemories) importanceSum += m.importance;
     const avgImportance = recentMemories.length > 0 ? importanceSum / recentMemories.length : null;
-
     return {
       agent: { ...agent, memory_count: memIds.length, dream_count: dreamIds.length, avg_importance: avgImportance },
       recentMemories,
@@ -223,15 +201,12 @@ const kvStore = {
 
   async deleteAgent(id: string): Promise<void> {
     const kv = await getKV();
-    // Delete memories
     const memIds: number[] = (await kv.get(`memories:agent:${id}`)) || [];
     for (const mid of memIds) await kv.del(`memory:${mid}`);
     await kv.del(`memories:agent:${id}`);
-    // Delete dreams
     const dreamIds: number[] = (await kv.get(`dreams:agent:${id}`)) || [];
     for (const did of dreamIds) await kv.del(`dream:${did}`);
     await kv.del(`dreams:agent:${id}`);
-    // Delete agent
     await kv.del(`agent:${id}`);
     const agentIds: string[] = (await kv.get('agents:index')) || [];
     await kv.set('agents:index', agentIds.filter(a => a !== id));
@@ -262,28 +237,22 @@ const kvStore = {
     return null;
   },
 
-  // ---- Sync Memory ----
   async syncMemories(agentId: string, memories: any[]): Promise<{ synced: number; skipped: number }> {
     const kv = await getKV();
     let synced = 0, skipped = 0;
     const existingIds: number[] = (await kv.get(`memories:agent:${agentId}`)) || [];
-
-    // Check existing UUIDs
     const existingUuids = new Set<string>();
     for (const mid of existingIds) {
       const m = await kv.get<MemoryIndex>(`memory:${mid}`);
       if (m) existingUuids.add(m.memory_uuid);
     }
-
     for (const item of memories) {
       const { digest, type, importance, tags, memoryUuid, contentPreview } = item;
       if (!digest || !type || !memoryUuid) continue;
       if (existingUuids.has(memoryUuid)) { skipped++; continue; }
-
       const counter: number = ((await kv.get('memories:counter')) || 0) as number;
       const newId = counter + 1;
       await kv.set('memories:counter', newId);
-
       const mem: MemoryIndex = {
         id: newId, agent_id: agentId, digest, type, importance: importance || 5,
         tags: Array.isArray(tags) ? JSON.stringify(tags) : (tags || null),
@@ -294,27 +263,20 @@ const kvStore = {
       existingIds.push(newId);
       synced++;
     }
-
     await kv.set(`memories:agent:${agentId}`, existingIds);
-
-    if (synced > 0) {
-      await kvStore._addSyncLog(agentId, 'memory', JSON.stringify({ count: synced, skipped }));
-    }
+    if (synced > 0) await kvStore._addSyncLog(agentId, 'memory', JSON.stringify({ count: synced, skipped }));
     return { synced, skipped };
   },
 
-  // ---- Sync Dream ----
   async syncDreams(agentId: string, dreams: any[]): Promise<{ synced: number }> {
     const kv = await getKV();
     let synced = 0;
     const existingIds: number[] = (await kv.get(`dreams:agent:${agentId}`)) || [];
-
     for (const item of dreams) {
       const { summary, status, memoriesCreated, dreamUuid, healthScore } = item;
       const counter: number = ((await kv.get('dreams:counter')) || 0) as number;
       const newId = counter + 1;
       await kv.set('dreams:counter', newId);
-
       const dream: DreamIndex = {
         id: newId, agent_id: agentId, summary: summary || null,
         status: status || 'completed', memories_created: memoriesCreated || 0,
@@ -325,22 +287,16 @@ const kvStore = {
       existingIds.push(newId);
       synced++;
     }
-
     await kv.set(`dreams:agent:${agentId}`, existingIds);
-
-    if (synced > 0) {
-      await kvStore._addSyncLog(agentId, 'dream', JSON.stringify({ count: synced }));
-    }
+    if (synced > 0) await kvStore._addSyncLog(agentId, 'dream', JSON.stringify({ count: synced }));
     return { synced };
   },
 
-  // ---- Search ----
   async searchMemories(query: string, agentId?: string, type?: string, limit = 20): Promise<{ results: SearchResult[]; total: number }> {
     const kv = await getKV();
     const agentIds: string[] = (await kv.get('agents:index')) || [];
     const results: SearchResult[] = [];
     const q = query.toLowerCase();
-
     for (const aid of agentIds) {
       if (agentId && aid !== agentId) continue;
       const agent = await kv.get<Agent>(`agent:${aid}`);
@@ -351,17 +307,13 @@ const kvStore = {
         if (!mem) continue;
         if (type && mem.type !== type) continue;
         const searchable = `${mem.digest} ${mem.tags || ''} ${mem.content_preview || ''}`.toLowerCase();
-        if (searchable.includes(q)) {
-          results.push({ ...mem, agent_name: agent.name, agent_species: agent.species });
-        }
+        if (searchable.includes(q)) results.push({ ...mem, agent_name: agent.name, agent_species: agent.species });
       }
     }
-
     results.sort((a, b) => b.importance - a.importance || (b.created_at || '').localeCompare(a.created_at || ''));
     return { results: results.slice(0, limit), total: results.length };
   },
 
-  // ---- Internal ----
   async _addSyncLog(agentId: string, syncType: string, details: string) {
     const kv = await getKV();
     const counter: number = ((await kv.get('synclog:counter')) || 0) as number;
@@ -374,124 +326,128 @@ const kvStore = {
     await kv.set(`synclog:${newId}`, entry);
     const allIds: number[] = (await kv.get('synclog:all')) || [];
     allIds.push(newId);
-    // Keep only last 200
     if (allIds.length > 200) allIds.splice(0, allIds.length - 200);
     await kv.set('synclog:all', allIds);
   },
 };
 
-// ==================== SQLite Store (delegates to existing db.ts) ====================
+// ==================== sql.js Store Implementation ====================
 const sqliteStore = {
   getDashboard: async (): Promise<DashboardData> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
-    const stats = db.prepare(`
+    const { getDb, queryOne, queryAll } = await import('./db');
+    const db = await getDb();
+    const stats = queryOne(db, `
       SELECT 
         (SELECT COUNT(*) FROM agents) as total_agents,
         (SELECT COUNT(*) FROM agents WHERE status = 'online') as online_agents,
         (SELECT COUNT(*) FROM memory_index) as total_memories,
         (SELECT COUNT(*) FROM dream_index) as total_dreams,
         (SELECT AVG(importance) FROM memory_index) as avg_importance
-    `).get() as any;
-    const memoryByType = db.prepare(`SELECT type, COUNT(*) as count FROM memory_index GROUP BY type ORDER BY count DESC`).all() as any[];
-    const recentActivity = db.prepare(`SELECT s.*, a.name as agent_name FROM sync_log s JOIN agents a ON s.agent_id = a.id ORDER BY s.created_at DESC LIMIT 10`).all() as any[];
-    const agentsSummary = db.prepare(`SELECT a.id, a.name, a.species, a.status, a.last_heartbeat, COUNT(DISTINCT m.id) as memory_count, COUNT(DISTINCT d.id) as dream_count FROM agents a LEFT JOIN memory_index m ON a.id = m.agent_id LEFT JOIN dream_index d ON a.id = d.agent_id GROUP BY a.id ORDER BY a.last_heartbeat DESC`).all() as any[];
-    const dreamsByDay = db.prepare(`SELECT date(dreamed_at) as date, COUNT(*) as count FROM dream_index WHERE dreamed_at > datetime('now', '-7 days') GROUP BY date(dreamed_at) ORDER BY date ASC`).all() as any[];
+    `);
+    const memoryByType = queryAll(db, `SELECT type, COUNT(*) as count FROM memory_index GROUP BY type ORDER BY count DESC`);
+    const recentActivity = queryAll(db, `SELECT s.*, a.name as agent_name FROM sync_log s JOIN agents a ON s.agent_id = a.id ORDER BY s.created_at DESC LIMIT 10`);
+    const agentsSummary = queryAll(db, `SELECT a.id, a.name, a.species, a.status, a.last_heartbeat, (SELECT COUNT(*) FROM memory_index WHERE agent_id = a.id) as memory_count, (SELECT COUNT(*) FROM dream_index WHERE agent_id = a.id) as dream_count FROM agents a ORDER BY a.last_heartbeat DESC`);
+    const dreamsByDay = queryAll(db, `SELECT date(dreamed_at) as date, COUNT(*) as count FROM dream_index WHERE dreamed_at > datetime('now', '-7 days') GROUP BY date(dreamed_at) ORDER BY date ASC`);
     return { stats, memoryByType, recentActivity, agentsSummary, dreamsByDay };
   },
 
   getAgents: async (): Promise<AgentSummary[]> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
-    return db.prepare(`SELECT a.*, (SELECT COUNT(*) FROM memory_index WHERE agent_id = a.id) as memory_count, (SELECT COUNT(*) FROM dream_index WHERE agent_id = a.id) as dream_count FROM agents a ORDER BY a.last_heartbeat DESC`).all() as AgentSummary[];
+    const { getDb, queryAll } = await import('./db');
+    const db = await getDb();
+    return queryAll(db, `SELECT a.*, (SELECT COUNT(*) FROM memory_index WHERE agent_id = a.id) as memory_count, (SELECT COUNT(*) FROM dream_index WHERE agent_id = a.id) as dream_count FROM agents a ORDER BY a.last_heartbeat DESC`) as AgentSummary[];
   },
 
   createAgent: async (id: string, name: string, species: string, apiKey: string): Promise<Agent> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
-    db.prepare(`INSERT INTO agents (id, name, species, api_key, status, last_heartbeat) VALUES (?, ?, ?, ?, 'online', CURRENT_TIMESTAMP)`).run(id, name, species, apiKey);
-    return db.prepare('SELECT * FROM agents WHERE id = ?').get(id) as Agent;
+    const { getDb, runSql, queryOne } = await import('./db');
+    const db = await getDb();
+    runSql(db, `INSERT INTO agents (id, name, species, api_key, status, last_heartbeat) VALUES (?, ?, ?, ?, 'online', CURRENT_TIMESTAMP)`, [id, name, species, apiKey]);
+    return queryOne(db, 'SELECT * FROM agents WHERE id = ?', [id]) as Agent;
   },
 
   getAgentDetail: async (id: string): Promise<AgentDetailData | null> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
-    const agent = db.prepare(`SELECT a.*, (SELECT COUNT(*) FROM memory_index WHERE agent_id = a.id) as memory_count, (SELECT COUNT(*) FROM dream_index WHERE agent_id = a.id) as dream_count, (SELECT AVG(importance) FROM memory_index WHERE agent_id = a.id) as avg_importance FROM agents a WHERE a.id = ?`).get(id) as any;
+    const { getDb, queryOne, queryAll } = await import('./db');
+    const db = await getDb();
+    const agent = queryOne(db, `SELECT a.*, (SELECT COUNT(*) FROM memory_index WHERE agent_id = a.id) as memory_count, (SELECT COUNT(*) FROM dream_index WHERE agent_id = a.id) as dream_count, (SELECT AVG(importance) FROM memory_index WHERE agent_id = a.id) as avg_importance FROM agents a WHERE a.id = ?`, [id]);
     if (!agent) return null;
-    const recentMemories = db.prepare(`SELECT * FROM memory_index WHERE agent_id = ? ORDER BY created_at DESC LIMIT 10`).all(id) as MemoryIndex[];
-    const recentDreams = db.prepare(`SELECT * FROM dream_index WHERE agent_id = ? ORDER BY dreamed_at DESC LIMIT 5`).all(id) as DreamIndex[];
+    const recentMemories = queryAll(db, `SELECT * FROM memory_index WHERE agent_id = ? ORDER BY created_at DESC LIMIT 10`, [id]) as MemoryIndex[];
+    const recentDreams = queryAll(db, `SELECT * FROM dream_index WHERE agent_id = ? ORDER BY dreamed_at DESC LIMIT 5`, [id]) as DreamIndex[];
     return { agent, recentMemories, recentDreams };
   },
 
   deleteAgent: async (id: string): Promise<void> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
-    db.prepare('DELETE FROM memory_index WHERE agent_id = ?').run(id);
-    db.prepare('DELETE FROM dream_index WHERE agent_id = ?').run(id);
-    db.prepare('DELETE FROM sync_log WHERE agent_id = ?').run(id);
-    db.prepare('DELETE FROM agents WHERE id = ?').run(id);
+    const { getDb, runSql } = await import('./db');
+    const db = await getDb();
+    runSql(db, 'DELETE FROM memory_index WHERE agent_id = ?', [id]);
+    runSql(db, 'DELETE FROM dream_index WHERE agent_id = ?', [id]);
+    runSql(db, 'DELETE FROM sync_log WHERE agent_id = ?', [id]);
+    runSql(db, 'DELETE FROM agents WHERE id = ?', [id]);
   },
 
   heartbeat: async (id: string): Promise<boolean> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
-    const result = db.prepare(`UPDATE agents SET status = 'online', last_heartbeat = CURRENT_TIMESTAMP WHERE id = ?`).run(id);
-    db.prepare(`UPDATE agents SET status = 'offline' WHERE last_heartbeat < datetime('now', '-2 minutes')`).run();
-    return result.changes > 0;
+    const { getDb, runSql } = await import('./db');
+    const db = await getDb();
+    const changes = runSql(db, `UPDATE agents SET status = 'online', last_heartbeat = CURRENT_TIMESTAMP WHERE id = ?`, [id]);
+    runSql(db, `UPDATE agents SET status = 'offline' WHERE last_heartbeat < datetime('now', '-2 minutes')`);
+    return changes > 0;
   },
 
   verifyApiKey: async (apiKey: string): Promise<Agent | null> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
-    const agent = db.prepare('SELECT * FROM agents WHERE api_key = ?').get(apiKey) as Agent | undefined;
+    const { getDb, queryOne, runSql } = await import('./db');
+    const db = await getDb();
+    const agent = queryOne(db, 'SELECT * FROM agents WHERE api_key = ?', [apiKey]) as Agent | null;
     if (agent) {
-      db.prepare('UPDATE agents SET status = "online", last_heartbeat = CURRENT_TIMESTAMP WHERE id = ?').run(agent.id);
+      runSql(db, 'UPDATE agents SET status = "online", last_heartbeat = CURRENT_TIMESTAMP WHERE id = ?', [agent.id]);
     }
-    return agent || null;
+    return agent;
   },
 
   syncMemories: async (agentId: string, memories: any[]): Promise<{ synced: number; skipped: number }> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
+    const { getDb, queryOne, runSql } = await import('./db');
+    const db = await getDb();
     let synced = 0, skipped = 0;
-    const checkStmt = db.prepare('SELECT id FROM memory_index WHERE agent_id = ? AND memory_uuid = ?');
-    const insertStmt = db.prepare(`INSERT INTO memory_index (agent_id, digest, type, importance, tags, memory_uuid, content_preview) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-    const logStmt = db.prepare(`INSERT INTO sync_log (agent_id, sync_type, status, details) VALUES (?, 'memory', 'success', ?)`);
-    const transaction = db.transaction((items: any[]) => {
-      for (const item of items) {
+    
+    // sql.js doesn't have a direct transaction helper like better-sqlite3, so we manually wrap
+    db.run('BEGIN');
+    try {
+      for (const item of memories) {
         const { digest, type, importance, tags, memoryUuid, contentPreview } = item;
         if (!digest || !type || !memoryUuid) continue;
-        if (checkStmt.get(agentId, memoryUuid)) { skipped++; continue; }
-        insertStmt.run(agentId, digest, type, importance || 5, Array.isArray(tags) ? JSON.stringify(tags) : (tags || null), memoryUuid, contentPreview || null);
+        if (queryOne(db, 'SELECT id FROM memory_index WHERE agent_id = ? AND memory_uuid = ?', [agentId, memoryUuid])) { skipped++; continue; }
+        runSql(db, `INSERT INTO memory_index (agent_id, digest, type, importance, tags, memory_uuid, content_preview) VALUES (?, ?, ?, ?, ?, ?, ?)`, [agentId, digest, type, importance || 5, Array.isArray(tags) ? JSON.stringify(tags) : (tags || null), memoryUuid, contentPreview || null]);
         synced++;
       }
-    });
-    transaction(memories);
-    if (synced > 0) logStmt.run(agentId, JSON.stringify({ count: synced, skipped }));
+      if (synced > 0) runSql(db, `INSERT INTO sync_log (agent_id, sync_type, status, details) VALUES (?, 'memory', 'success', ?)`, [agentId, JSON.stringify({ count: synced, skipped })]);
+      db.run('COMMIT');
+    } catch (e) {
+      db.run('ROLLBACK');
+      throw e;
+    }
     return { synced, skipped };
   },
 
   syncDreams: async (agentId: string, dreams: any[]): Promise<{ synced: number }> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
+    const { getDb, runSql } = await import('./db');
+    const db = await getDb();
     let synced = 0;
-    const insertStmt = db.prepare(`INSERT INTO dream_index (agent_id, summary, status, memories_created, dream_uuid, health_score) VALUES (?, ?, ?, ?, ?, ?)`);
-    const logStmt = db.prepare(`INSERT INTO sync_log (agent_id, sync_type, status, details) VALUES (?, 'dream', 'success', ?)`);
-    const transaction = db.transaction((items: any[]) => {
-      for (const item of items) {
+    db.run('BEGIN');
+    try {
+      for (const item of dreams) {
         const { summary, status, memoriesCreated, dreamUuid, healthScore } = item;
-        insertStmt.run(agentId, summary || null, status || 'completed', memoriesCreated || 0, dreamUuid || null, healthScore || null);
+        runSql(db, `INSERT INTO dream_index (agent_id, summary, status, memories_created, dream_uuid, health_score) VALUES (?, ?, ?, ?, ?, ?)`, [agentId, summary || null, status || 'completed', memoriesCreated || 0, dreamUuid || null, healthScore || null]);
         synced++;
       }
-    });
-    transaction(dreams);
-    if (synced > 0) logStmt.run(agentId, JSON.stringify({ count: synced }));
+      if (synced > 0) runSql(db, `INSERT INTO sync_log (agent_id, sync_type, status, details) VALUES (?, 'dream', 'success', ?)`, [agentId, JSON.stringify({ count: synced })]);
+      db.run('COMMIT');
+    } catch (e) {
+      db.run('ROLLBACK');
+      throw e;
+    }
     return { synced };
   },
 
   searchMemories: async (query: string, agentId?: string, type?: string, limit = 20): Promise<{ results: SearchResult[]; total: number }> => {
-    const { getDb } = await import('./db');
-    const db = getDb();
+    const { getDb, queryAll, queryOne } = await import('./db');
+    const db = await getDb();
     let sql = `SELECT m.*, a.name as agent_name, a.species as agent_species FROM memory_index m JOIN agents a ON m.agent_id = a.id WHERE 1=1`;
     const params: any[] = [];
     const q = `%${query}%`;
@@ -501,14 +457,14 @@ const sqliteStore = {
     if (type) { sql += ` AND m.type = ?`; params.push(type); }
     sql += ` ORDER BY m.importance DESC, m.created_at DESC LIMIT ?`;
     params.push(limit);
-    const results = db.prepare(sql).all(...params) as SearchResult[];
+    const results = queryAll(db, sql, params) as SearchResult[];
 
     let countSql = `SELECT COUNT(*) as total FROM memory_index m WHERE (m.tags LIKE ? OR m.digest LIKE ? OR m.content_preview LIKE ?)`;
     const cParams: any[] = [q, q, q];
     if (agentId) { countSql += ` AND m.agent_id = ?`; cParams.push(agentId); }
     if (type) { countSql += ` AND m.type = ?`; cParams.push(type); }
-    const { total } = db.prepare(countSql).get(...cParams) as { total: number };
-    return { results, total };
+    const totalRow = queryOne(db, countSql, cParams) as { total: number };
+    return { results, total: totalRow.total };
   },
 };
 

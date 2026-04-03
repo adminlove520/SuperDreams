@@ -2,13 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverExternalPackages: ['better-sqlite3'],
+    serverExternalPackages: ['sql.js'],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals = config.externals || [];
       config.externals.push({
-        'better-sqlite3': 'commonjs better-sqlite3',
+        'sql.js': 'commonjs sql.js',
       });
     }
     return config;
