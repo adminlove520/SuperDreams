@@ -1,16 +1,14 @@
 {
   "name": "superdreams",
   "version": "4.1.1",
-  "description": "SuperDreams (超梦) — AI Agent 认知记忆系统，通过做梦实现记忆整合与进化",
   "private": true,
   "workspaces": [
     "agent",
     "center"
   ],
   "scripts": {
-    "dev": "npm run dev -w agent",
-    "build": "npm run build -w agent",
-    "start": "npm run start -w agent",
+    "dev:agent": "npm run dev -w agent",
+    "build:agent": "npm run build -w agent",
     "dev:center": "npm run dev -w center",
     "build:center": "npm run build -w center",
     "dream": "node scripts/dream.js"
