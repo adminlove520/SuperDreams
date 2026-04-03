@@ -3,6 +3,20 @@
 All notable changes will be documented in this file.
 
 ## [5.1.3] - 2026-04-03
+## [5.1.4] - 2026-04-03
+
+### Skills
+- SKILL updates
+### Docs
+- Documentation updates
+### Scripts
+- Script improvements
+### Architecture
+- Architecture improvements
+### Code
+- Core logic updates
+
+
 
 ### Fixed
 - **Release Workflow** — Added `--allow-same-version` to `npm version` command in GitHub Actions to prevent build failures when versions are already updated.
