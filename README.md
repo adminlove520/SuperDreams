@@ -10,16 +10,16 @@
 
 SuperDreams provides a real memory system for AI Agents (we call them **Lobsters**). Each Agent periodically "dreams" -- scanning logs, extracting knowledge, consolidating memories, and evaluating cognitive health -- achieving continuous cognitive evolution.
 
-## 🦞 SD-Dream CLI
+## 🦞 SuperDreams CLI
 
 Control your SuperDreams Agent directly from the command line.
 
 ```bash
 # Install
-npm install -g sd-dream
+npm install -g superdreams-cli
 
-# Config (Persist to ~/.sd-dream.json)
-sd-dream config --url https://agent.vercel.app --key your-api-key
+# Config (Persist to ~/.superdreams-cli.json)
+superdreams-cli config --url https://agent.vercel.app --key your-api-key
 
 # OR use Environment Variables
 export SUPERDREAMS_URL=https://agent.vercel.app
@@ -27,11 +27,11 @@ export CENTER_API_KEY=your-api-key
 export CENTER_URL=https://xiaoxi-dreams.vercel.app
 
 # Dream & Sync
-sd-dream dream
-sd-dream sync
+superdreams-cli dream
+superdreams-cli sync
 
 # Stats
-sd-dream stats
+superdreams-cli stats
 ```
 
 ## Core Features
@@ -55,7 +55,7 @@ SuperDreams/
 |   +-- app/            #   Dashboard + API
 |   +-- lib/            #   Auth + Store
 +-- cli/                # SD-Dream CLI (Node.js tool)
-|   +-- bin/            #   sd-dream binary
+|   +-- bin/            #   superdreams-cli binary
 +-- docs/               # Documentation
 |   +-- architecture.md #   System architecture diagrams
 |   +-- data-flow.md    #   Data flow and logic diagrams
@@ -91,7 +91,7 @@ npm run dev:agent
 ```bash
 # In another terminal
 cd cli && npm link
-sd-dream dream
+superdreams-cli dream
 ```
 
 ### 4. Deploy to Vercel (Production)

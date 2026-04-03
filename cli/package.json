@@ -1,10 +1,10 @@
 {
-  "name": "sd-dream",
-  "version": "5.1.5",
-  "description": "SuperDreams (超梦) — AI Agent 认知记忆系统命令行工具 (SD-Dream CLI)",
+  "name": "superdreams-cli",
+  "version": "5.1.6",
+  "description": "SuperDreams (超梦) — AI Agent Cognitive Memory System CLI Tool",
   "main": "index.js",
   "bin": {
-    "sd-dream": "bin/sd-dream.js"
+    "superdreams-cli": "bin/superdreams-cli.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,7 +15,7 @@
     "agent",
     "memory",
     "cli",
-    "sd-dream"
+    "superdreams-cli"
   ],
   "author": "adminlove520",
   "license": "MIT",

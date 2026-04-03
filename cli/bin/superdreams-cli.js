@@ -17,7 +17,7 @@ const pkg = JSON.parse(
 );
 
 const program = new Command();
-const CONFIG_PATH = path.join(os.homedir(), '.sd-dream.json');
+const CONFIG_PATH = path.join(os.homedir(), '.superdreams-cli.json');
 
 // --- 环境变量常量 ---
 const ENV_VARS = {
@@ -56,7 +56,7 @@ function saveConfig(config) {
 }
 
 program
-  .name('sd-dream')
+  .name('superdreams-cli')
   .description('SuperDreams CLI - Agent Control Tool')
   .version(pkg.version);
 
@@ -126,7 +126,7 @@ program
   .action(async () => {
     const config = loadConfig();
     if (!config.apiKey) {
-      console.log(chalk.yellow('⚠ 未配置 API Key，请先运行: sd-dream config -k <your_key> 或设置 CENTER_API_KEY 环境变量'));
+      console.log(chalk.yellow('⚠ 未配置 API Key，请先运行: superdreams-cli config -k <your_key> 或设置 CENTER_API_KEY 环境变量'));
       return;
     }
 

@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## [5.1.6] - 2026-04-03
+
+### Changed
+- **CLI Rename** — Renamed CLI package from `sd-dream` to `superdreams-cli` for better branding. Command name is now `superdreams-cli`.
+- **Config Path** — Updated local config file path to `~/.superdreams-cli.json`.
+
 ## [5.1.5] - 2026-04-03
 
 ### Changed
