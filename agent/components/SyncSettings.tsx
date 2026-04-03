@@ -11,7 +11,8 @@ export default function SyncSettings() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setCenterUrl(localStorage.getItem('centerUrl') || '')
+      const savedUrl = localStorage.getItem('centerUrl')
+      setCenterUrl(savedUrl || 'https://xiaoxi-dreams.vercel.app')
       setApiKey(localStorage.getItem('apiKey') || '')
     }
   }, [])
@@ -59,7 +60,7 @@ export default function SyncSettings() {
             type="text" 
             value={centerUrl}
             onChange={(e) => setCenterUrl(e.target.value)}
-            placeholder="http://127.0.0.1:3001"
+            placeholder="https://xiaoxi-dreams.vercel.app"
             className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-lg px-3 py-2 text-sm text-medium font-mono focus:outline-none focus:border-green-500/60 focus:shadow-neon-green/20 transition-all placeholder:text-zinc-600"
           />
         </div>
