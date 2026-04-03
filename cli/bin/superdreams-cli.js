@@ -28,7 +28,7 @@ const ENV_VARS = {
 
 function loadConfig() {
   let config = {
-    url: 'http://localhost:3000',
+    url: 'https://agent-chi-ashy.vercel.app',
     apiKey: '',
     centerUrl: 'https://xiaoxi-dreams.vercel.app'
   };

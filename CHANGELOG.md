@@ -2,6 +2,11 @@
 
 All notable changes will be documented in this file.
 
+## [5.1.7] - 2026-04-03
+
+### Changed
+- **Default Agent URL** — Updated the default Agent Dashboard URL in `superdreams-cli` to `https://agent-chi-ashy.vercel.app` to ensure immediate availability for production users.
+
 ## [5.1.6] - 2026-04-03
 
 ### Changed
