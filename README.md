@@ -2,7 +2,7 @@
 
 > AI Agent Cognitive Memory System - Memory consolidation through "dreaming"
 
-[![Version](https://img.shields.io/badge/version-5.1.1-green)](https://github.com/adminlove520/SuperDreams)
+[![Version](https://img.shields.io/github/v/release/adminlove520/SuperDreams?color=green)](https://github.com/adminlove520/SuperDreams/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![NPM](https://img.shields.io/npm/v/openclaw?color=red)](https://www.npmjs.com/package/openclaw)
 

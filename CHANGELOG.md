@@ -6,6 +6,7 @@ All notable changes will be documented in this file.
 
 ### Fixed
 - **Release Workflow** — Added `--allow-same-version` to `npm version` command in GitHub Actions to prevent build failures when versions are already updated.
+- **Dynamic Versioning** — Updated CLI and README to use dynamic versioning. Refactored hardcoded v4.x references to current v5.1.
 
 ## [5.1.2] - 2026-04-03
 

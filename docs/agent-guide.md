@@ -210,7 +210,7 @@ cron.add({
 | fact | Storing objective information | "Redis max connections: 10000" | 4-7 |
 | procedure | Documenting step-by-step processes | "How to deploy to Vercel" | 5-7 |
 | person | Remembering info about people | "User prefers concise replies" | 5-8 |
-| project | Tracking project milestones | "SuperDreams v4.1 released" | 6-8 |
+| project | Tracking project milestones | "SuperDreams v5.1 released" | 6-8 |
 
 ### Importance Scale
 

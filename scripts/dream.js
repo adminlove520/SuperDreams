@@ -1,5 +1,5 @@
 /**
- * SuperDreams v4.0 — Dream Script (CLI)
+ * SuperDreams v5.1 — Dream Script (CLI)
  *
  * 真实做梦：扫描 memory/ 日志 → 提取记忆 → 存入 SQLite → 计算健康度 → 生成报告
  */
@@ -248,7 +248,7 @@ function calculateHealth(db, previousHealth) {
 
 // ────────────── 主流程 ──────────────
 async function run() {
-  console.log('🌀 SuperDreams v4.0 | Dream Engine');
+  console.log('🌀 SuperDreams v5.1 | Dream Engine');
   console.log('====================================');
   console.log(`📂 数据库: ${DB_PATH}`);
   console.log(`📂 日志目录: ${MEMORY_DIR}`);

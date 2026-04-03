@@ -402,7 +402,7 @@ export default function Dashboard() {
       <footer className="max-w-7xl mx-auto px-4 sm:px-6 py-8 border-t border-cyber-border mt-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-gray-500 font-mono text-xs">
-            <span className="neon-text-cyan text-[11px]">SUPERDREAMS</span> <span className="text-gray-600">//</span> Control Center v4.1.0
+            <span className="neon-text-cyan text-[11px]">SUPERDREAMS</span> <span className="text-gray-600">//</span> Control Center v5.1.3
           </p>
           <p className="text-gray-500 font-mono text-xs">
             {T('footer.powered')} <span className="text-cyber-pink">{T('footer.engine')}</span> {T('footer.powered_suffix')} 🦞

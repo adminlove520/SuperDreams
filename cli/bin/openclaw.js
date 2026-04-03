@@ -6,6 +6,15 @@ import ora from 'ora';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 读取 package.json 获取版本号
+const pkg = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8')
+);
 
 const program = new Command();
 const CONFIG_PATH = path.join(os.homedir(), '.openclaw.json');
@@ -49,7 +58,7 @@ function saveConfig(config) {
 program
   .name('openclaw')
   .description('OpenClaw CLI - SuperDreams Agent Control Tool')
-  .version('5.1.1');
+  .version(pkg.version);
 
 // Config Command
 program

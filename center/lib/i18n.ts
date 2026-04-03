@@ -6,7 +6,7 @@ export const translations = {
     // Header
     'header.title_1': '超梦',
     'header.title_2': '中控',
-    'header.subtitle': '控制中心 v4.0',
+    'header.subtitle': '控制中心 v5.1',
     'header.online': '在线',
     'header.total': '总计',
     'header.search': '神经搜索',
@@ -96,7 +96,7 @@ export const translations = {
     // Header
     'header.title_1': 'SUPER',
     'header.title_2': 'DREAMS',
-    'header.subtitle': 'Control Center v4.0',
+    'header.subtitle': 'Control Center v5.1',
     'header.online': 'ONLINE',
     'header.total': 'TOTAL',
     'header.search': 'Neural Search',

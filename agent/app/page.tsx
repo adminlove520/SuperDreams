@@ -126,7 +126,7 @@ export default function Home() {
             </div>
             <div>
               <h1 className="font-bold text-lg text-bright tracking-tight">SuperDreams</h1>
-              <p className="text-[10px] text-green-500/70 font-mono font-medium uppercase tracking-widest">Cognitive Core v4.1</p>
+              <p className="text-[10px] text-green-500/70 font-mono font-medium uppercase tracking-widest">Cognitive Core v5.1</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -215,7 +215,7 @@ export default function Home() {
                     </a>
                   </div>
                   <div className="px-4 py-3 border-t border-zinc-800/60">
-                    <p className="text-[10px] text-muted font-mono">SuperDreams v4.1.0</p>
+                    <p className="text-[10px] text-muted font-mono">SuperDreams v5.1.3</p>
                     <p className="text-[10px] text-muted font-mono">Agent Dashboard (sql.js)</p>
                   </div>
                 </div>

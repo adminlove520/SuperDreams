@@ -56,7 +56,7 @@ Content-Type: application/json
 | `fact` | 客观事实 | "Redis 最大连接数 10000" |
 | `procedure` | 操作流程 | "部署到 Vercel 的步骤" |
 | `person` | 人物信息 | "哥哥的偏好和习惯" |
-| `project` | 项目进展 | "SuperDreams v4.1 发布" |
+| `project` | 项目进展 | "SuperDreams v5.1 发布" |
 
 ### 重要度 (importance)
 

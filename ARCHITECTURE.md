@@ -1,4 +1,4 @@
-# SuperDreams v4.1 Architecture
+# SuperDreams v5.1 Architecture
 
 > Design date: 2026-04-02
 > Designer: Accio (AI Assistant)

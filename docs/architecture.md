@@ -1,4 +1,4 @@
-# SuperDreams v4.1 Architecture
+# SuperDreams v5.1 Architecture
 
 ## 1. System Overview
 

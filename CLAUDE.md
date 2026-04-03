@@ -17,7 +17,7 @@
 - **手动触发**：在 Dashboard 点击「触发 Dream」或运行 `npm run dream`。
 - **指令触发**：当用户说"整理记忆"、"做个梦"、"Dream now"时。
 
-## Dream 流程 (v4.0)
+## Dream 流程 (v5.1)
 
 1. **扫描 (Scan)**：读取 `memory/` 目录下的所有 `.md` 日志文件。
 2. **提取 (Extract)**：利用 LLM 提取事实、决策、教训、人物。
@@ -26,7 +26,7 @@
 5. **整合 (Consolidate)**：更新 SQLite 数据库并同步到 `MEMORY.md`。
 6. **报告 (Report)**：生成梦境报告，记录洞察与建议。
 
-## 目录结构 (v4.0)
+## 目录结构 (v5.1)
 
 ```
 superdreams/
